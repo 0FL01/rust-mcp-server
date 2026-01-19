@@ -4,7 +4,7 @@ use std::process::Command;
 use crate::{Tool, command::execute_command, serde_utils::deserialize_string};
 use rmcp::{
     ErrorData,
-    model::{AnnotateAble, Annotations, RawContent, Role},
+    model::{AnnotateAble, Annotations, RawContent},
 };
 use serde::Deserialize;
 
@@ -98,11 +98,7 @@ impl Tool for CargoWorkspaceInfoRmcpTool {
 
         let mut response: crate::Response = output.into();
         let workspace_info = WorkspaceInfo { packages };
-        let workspace_info = RawContent::json(workspace_info)?.annotate(Annotations {
-            audience: Some(vec![Role::User, Role::Assistant]),
-            last_modified: None,
-            priority: Some(1.),
-        });
+        let workspace_info = RawContent::json(workspace_info)?.annotate(Annotations::default());
 
         response.add_content(workspace_info);
         Ok(response)

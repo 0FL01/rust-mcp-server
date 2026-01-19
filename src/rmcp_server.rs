@@ -17,17 +17,24 @@ use crate::{
             CargoPackageRmcpTool, CargoRemoveRmcpTool, CargoSearchRmcpTool, CargoTestRmcpTool,
             CargoUpdateRmcpTool, CargoWorkspaceInfoRmcpTool,
         },
-        cargo_deny::{
-            CargoDenyCheckRmcpTool, CargoDenyInitRmcpTool, CargoDenyInstallRmcpTool,
-            CargoDenyListRmcpTool,
-        },
-        cargo_hack::{CargoHackInstallRmcpTool, CargoHackRmcpTool},
-        cargo_machete::{CargoMacheteInstallRmcpTool, CargoMacheteRmcpTool},
         rustc::RustcExplainRmcpTool,
-        rustup::{RustupShowRmcpTool, RustupToolchainAddRmcpTool, RustupUpdateRmcpTool},
     },
     version::AppVersion,
 };
+
+#[cfg(feature = "cargo-deny")]
+use crate::tools::cargo_deny::{
+    CargoDenyCheckRmcpTool, CargoDenyInitRmcpTool, CargoDenyInstallRmcpTool, CargoDenyListRmcpTool,
+};
+
+#[cfg(feature = "cargo-hack")]
+use crate::tools::cargo_hack::{CargoHackInstallRmcpTool, CargoHackRmcpTool};
+
+#[cfg(feature = "cargo-machete")]
+use crate::tools::cargo_machete::{CargoMacheteInstallRmcpTool, CargoMacheteRmcpTool};
+
+#[cfg(feature = "rustup")]
+use crate::tools::rustup::{RustupShowRmcpTool, RustupToolchainAddRmcpTool, RustupUpdateRmcpTool};
 
 pub struct Server {
     ignore_recommendations: bool,
@@ -64,42 +71,54 @@ impl Server {
             Box::new(CargoWorkspaceInfoRmcpTool),
         );
 
-        // Cargo-deny tools
-        tools.insert(
-            CargoDenyCheckRmcpTool::NAME,
-            Box::new(CargoDenyCheckRmcpTool),
-        );
-        tools.insert(CargoDenyInitRmcpTool::NAME, Box::new(CargoDenyInitRmcpTool));
-        tools.insert(
-            CargoDenyInstallRmcpTool::NAME,
-            Box::new(CargoDenyInstallRmcpTool),
-        );
-        tools.insert(CargoDenyListRmcpTool::NAME, Box::new(CargoDenyListRmcpTool));
-
-        // Cargo-hack tools
-        tools.insert(CargoHackRmcpTool::NAME, Box::new(CargoHackRmcpTool));
-        tools.insert(
-            CargoHackInstallRmcpTool::NAME,
-            Box::new(CargoHackInstallRmcpTool),
-        );
-
-        // Cargo-machete tools
-        tools.insert(CargoMacheteRmcpTool::NAME, Box::new(CargoMacheteRmcpTool));
-        tools.insert(
-            CargoMacheteInstallRmcpTool::NAME,
-            Box::new(CargoMacheteInstallRmcpTool),
-        );
-
         // Rustc tools
         tools.insert(RustcExplainRmcpTool::NAME, Box::new(RustcExplainRmcpTool));
 
-        // Rustup tools
-        tools.insert(RustupShowRmcpTool::NAME, Box::new(RustupShowRmcpTool));
-        tools.insert(
-            RustupToolchainAddRmcpTool::NAME,
-            Box::new(RustupToolchainAddRmcpTool),
-        );
-        tools.insert(RustupUpdateRmcpTool::NAME, Box::new(RustupUpdateRmcpTool));
+        #[cfg(feature = "cargo-deny")]
+        {
+            // Cargo-deny tools
+            tools.insert(
+                CargoDenyCheckRmcpTool::NAME,
+                Box::new(CargoDenyCheckRmcpTool),
+            );
+            tools.insert(CargoDenyInitRmcpTool::NAME, Box::new(CargoDenyInitRmcpTool));
+            tools.insert(
+                CargoDenyInstallRmcpTool::NAME,
+                Box::new(CargoDenyInstallRmcpTool),
+            );
+            tools.insert(CargoDenyListRmcpTool::NAME, Box::new(CargoDenyListRmcpTool));
+        }
+
+        #[cfg(feature = "cargo-hack")]
+        {
+            // Cargo-hack tools
+            tools.insert(CargoHackRmcpTool::NAME, Box::new(CargoHackRmcpTool));
+            tools.insert(
+                CargoHackInstallRmcpTool::NAME,
+                Box::new(CargoHackInstallRmcpTool),
+            );
+        }
+
+        #[cfg(feature = "cargo-machete")]
+        {
+            // Cargo-machete tools
+            tools.insert(CargoMacheteRmcpTool::NAME, Box::new(CargoMacheteRmcpTool));
+            tools.insert(
+                CargoMacheteInstallRmcpTool::NAME,
+                Box::new(CargoMacheteInstallRmcpTool),
+            );
+        }
+
+        #[cfg(feature = "rustup")]
+        {
+            // Rustup tools
+            tools.insert(RustupShowRmcpTool::NAME, Box::new(RustupShowRmcpTool));
+            tools.insert(
+                RustupToolchainAddRmcpTool::NAME,
+                Box::new(RustupToolchainAddRmcpTool),
+            );
+            tools.insert(RustupUpdateRmcpTool::NAME, Box::new(RustupUpdateRmcpTool));
+        }
 
         if !disabled_tools.is_empty() {
             tracing::info!("Disabled tools: {}", disabled_tools.join(", "));
@@ -202,7 +221,7 @@ impl rmcp::ServerHandler for Server {
                 title: Some("Rust MCP Server".to_owned()),
                 website_url: Some("https://github.com/Vaiz/rust-mcp-server".to_owned()),
             },
-            instructions: Some(include_str!("../docs/instructions.md").to_owned()),
+            instructions: None,
         }
     }
     async fn list_tools(

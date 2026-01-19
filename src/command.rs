@@ -1,8 +1,6 @@
 use rmcp::{
     ErrorData,
-    model::{
-        AnnotateAble, Annotated, Annotations, CallToolResult, RawContent, RawTextContent, Role,
-    },
+    model::{AnnotateAble, Annotated, Annotations, CallToolResult, RawContent, RawTextContent},
 };
 
 use crate::meta::Meta;
@@ -17,11 +15,7 @@ impl From<CommandLine> for Annotated<RawContent> {
             format!("Executed command: `{}`", val.0),
             "command line executed by MCP server",
         )
-        .annotate(Annotations {
-            audience: Some(vec![Role::User]),
-            last_modified: None,
-            priority: Some(0.5),
-        })
+        .annotate(Annotations::default())
     }
 }
 
@@ -30,11 +24,7 @@ pub(crate) struct Stdout(pub String);
 
 impl From<Stdout> for Annotated<RawContent> {
     fn from(val: Stdout) -> Self {
-        text_with_description(val.0, "stdout").annotate(Annotations {
-            audience: Some(vec![Role::User, Role::Assistant]),
-            last_modified: None,
-            priority: Some(0.2),
-        })
+        text_with_description(val.0, "stdout").annotate(Annotations::default())
     }
 }
 
@@ -43,11 +33,7 @@ pub(crate) struct Stderr(pub String);
 
 impl From<Stderr> for Annotated<RawContent> {
     fn from(val: Stderr) -> Self {
-        text_with_description(val.0, "stderr").annotate(Annotations {
-            audience: Some(vec![Role::User, Role::Assistant]),
-            last_modified: None,
-            priority: Some(1.),
-        })
+        text_with_description(val.0, "stderr").annotate(Annotations::default())
     }
 }
 
@@ -74,11 +60,7 @@ impl ExitStatus {
             meta: Some(meta.into()),
         });
 
-        content.annotate(Annotations {
-            audience: Some(vec![Role::User, Role::Assistant]),
-            last_modified: None,
-            priority: Some(1.),
-        })
+        content.annotate(Annotations::default())
     }
 }
 
@@ -91,11 +73,7 @@ impl From<AgentRecommendation> for Annotated<RawContent> {
             "recommendation for next action by the agent",
         );
 
-        content.annotate(Annotations {
-            audience: Some(vec![Role::Assistant]),
-            last_modified: None,
-            priority: Some(1.),
-        })
+        content.annotate(Annotations::default())
     }
 }
 

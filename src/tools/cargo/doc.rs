@@ -334,7 +334,7 @@ impl Tool for CargoDocRmcpTool {
     type RequestArgs = CargoDocRequest;
 
     fn call_rmcp_tool(&self, request: Self::RequestArgs) -> Result<crate::Response, ErrorData> {
-        use rmcp::model::{AnnotateAble, Annotations, Role};
+        use rmcp::model::{AnnotateAble, Annotations};
 
         let cmd = request.build_cmd()?;
         let start_time = std::time::Instant::now();
@@ -355,11 +355,7 @@ impl Tool for CargoDocRmcpTool {
             "Documentation generated successfully!".to_owned()
         };
 
-        response.add_content(RawContent::text(doc_info).annotate(Annotations {
-            audience: Some(vec![Role::User, Role::Assistant]),
-            last_modified: None,
-            priority: Some(0.5),
-        }));
+        response.add_content(RawContent::text(doc_info).annotate(Annotations::default()));
 
         if duration.as_secs() >= 30 && !request.no_deps.unwrap_or(false) {
             response.add_recommendation(

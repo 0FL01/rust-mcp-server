@@ -1,8 +1,12 @@
 pub mod cargo;
+#[cfg(feature = "cargo-deny")]
 pub mod cargo_deny;
+#[cfg(feature = "cargo-hack")]
 pub mod cargo_hack;
+#[cfg(feature = "cargo-machete")]
 pub mod cargo_machete;
 pub mod rustc;
+#[cfg(feature = "rustup")]
 pub mod rustup;
 
 static WORKSPACE_ROOT: std::sync::OnceLock<String> = std::sync::OnceLock::new();
