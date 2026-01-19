@@ -13,130 +13,179 @@ use rmcp::ErrorData;
 #[derive(Debug, ::serde::Deserialize, ::schemars::JsonSchema)]
 pub struct CargoBuildRequest {
     /// The toolchain to use, e.g., "stable" or "nightly".
-    #[serde(default, deserialize_with = "deserialize_string")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        deserialize_with = "deserialize_string"
+    )]
     toolchain: Option<String>,
 
     /// The name of the package to build. If not specified, the current package/workspace is built.
-    #[serde(default, deserialize_with = "deserialize_string_vec")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        deserialize_with = "deserialize_string_vec"
+    )]
     package: Option<Vec<String>>,
 
     /// Build all packages in the workspace
-    #[serde(default)]
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     workspace: Option<bool>,
 
     /// Exclude packages from the build
-    #[serde(default, deserialize_with = "deserialize_string_vec")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        deserialize_with = "deserialize_string_vec"
+    )]
     exclude: Option<Vec<String>>,
 
     /// Build only this package's library
-    #[serde(default)]
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     lib: Option<bool>,
 
     /// Build all binaries
-    #[serde(default)]
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     bins: Option<bool>,
 
     /// Build only the specified binary
-    #[serde(default, deserialize_with = "deserialize_string")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        deserialize_with = "deserialize_string"
+    )]
     bin: Option<String>,
 
     /// Build all examples
-    #[serde(default)]
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     examples: Option<bool>,
 
     /// Build only the specified example
-    #[serde(default, deserialize_with = "deserialize_string")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        deserialize_with = "deserialize_string"
+    )]
     example: Option<String>,
 
     /// Build all targets that have `test = true` set
-    #[serde(default)]
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     tests: Option<bool>,
 
     /// Build only the specified test target
-    #[serde(default, deserialize_with = "deserialize_string")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        deserialize_with = "deserialize_string"
+    )]
     test: Option<String>,
 
     /// Build all targets that have `bench = true` set
-    #[serde(default)]
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     benches: Option<bool>,
 
     /// Build only the specified bench target
-    #[serde(default, deserialize_with = "deserialize_string")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        deserialize_with = "deserialize_string"
+    )]
     bench: Option<String>,
 
     /// Build all targets
-    #[serde(default)]
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     all_targets: Option<bool>,
 
     /// Space or comma separated list of features to activate
-    #[serde(default, deserialize_with = "deserialize_string_vec")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        deserialize_with = "deserialize_string_vec"
+    )]
     features: Option<Vec<String>>,
 
     /// Activate all available features
-    #[serde(default)]
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     all_features: Option<bool>,
 
     /// Do not activate the `default` feature
-    #[serde(default)]
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     no_default_features: Option<bool>,
 
     /// Build artifacts in release mode, with optimizations
-    #[serde(default)]
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     release: Option<bool>,
 
     /// Build artifacts with the specified profile
-    #[serde(default, deserialize_with = "deserialize_string")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        deserialize_with = "deserialize_string"
+    )]
     profile: Option<String>,
 
     /// Number of parallel jobs, defaults to # of CPUs
-    #[serde(default)]
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     jobs: Option<u32>,
 
     /// Do not abort the build as soon as there is an error
-    #[serde(default)]
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     keep_going: Option<bool>,
 
     /// Build for the target triple
-    #[serde(default, deserialize_with = "deserialize_string")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        deserialize_with = "deserialize_string"
+    )]
     target: Option<String>,
 
     /// Directory for all generated artifacts
-    #[serde(default, deserialize_with = "deserialize_string")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        deserialize_with = "deserialize_string"
+    )]
     target_dir: Option<String>,
 
     /// Path to Cargo.toml
-    #[serde(default, deserialize_with = "deserialize_string")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        deserialize_with = "deserialize_string"
+    )]
     manifest_path: Option<String>,
 
     /// Path to Cargo.lock (unstable)
-    #[serde(default, deserialize_with = "deserialize_string")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        deserialize_with = "deserialize_string"
+    )]
     lockfile_path: Option<String>,
 
     /// Ignore `rust-version` specification in packages
-    #[serde(default)]
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     ignore_rust_version: Option<bool>,
 
-    /// Locking mode for dependency resolution.
-    ///
-    /// Valid options:
-    /// - "locked" (default): Assert that `Cargo.lock` will remain unchanged
-    /// - "unlocked": Allow `Cargo.lock` to be updated
-    /// - "offline": Run without accessing the network
-    /// - "frozen": Equivalent to specifying both --locked and --offline
-    #[serde(default, deserialize_with = "deserialize_string")]
+    /// Locking mode for dependency resolution. Valid options: "locked" (default), "unlocked", "offline", "frozen".
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        deserialize_with = "deserialize_string"
+    )]
     locking_mode: Option<String>,
 
-    /// Output verbosity level.
-    ///
-    /// Valid options:
-    /// - "quiet" (default): Show only the essential command output
-    /// - "normal": Show standard output (no additional flags)
-    /// - "verbose": Show detailed output including build information
-    #[serde(default, deserialize_with = "deserialize_string")]
+    /// Output verbosity level. Valid options: "quiet" (default), "normal", "verbose".
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        deserialize_with = "deserialize_string"
+    )]
     output_verbosity: Option<String>,
 
     /// Treat warnings as errors
-    #[serde(default)]
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     warnings_as_errors: Option<bool>,
 }
 

@@ -31,7 +31,7 @@ pub struct RustupShowRmcpTool;
 impl Tool for RustupShowRmcpTool {
     const NAME: &'static str = "rustup-show";
     const TITLE: &'static str = "Show Rust toolchains";
-    const DESCRIPTION: &'static str = "Show the active and installed toolchains or profiles. Shows the name of the active toolchain and the version of rustc. If the active toolchain has installed support for additional compilation targets, then they are listed as well.";
+    const DESCRIPTION: &'static str = "Show active and installed toolchains, profiles, and rustc version. Lists additional compilation targets if installed.";
     type RequestArgs = RustupShowRequest;
 
     fn call_rmcp_tool(&self, request: Self::RequestArgs) -> Result<crate::Response, ErrorData> {
@@ -176,7 +176,7 @@ pub struct RustupUpdateRmcpTool;
 impl Tool for RustupUpdateRmcpTool {
     const NAME: &'static str = "rustup-update";
     const TITLE: &'static str = "Update Rust toolchains";
-    const DESCRIPTION: &'static str = "Update Rust toolchains and rustup. With no toolchain specified, updates each of the installed toolchains from the official release channels, then updates rustup itself. If given a toolchain argument then updates that toolchain.";
+    const DESCRIPTION: &'static str = "Update Rust toolchains and rustup. Updates all installed toolchains or a specific toolchain if specified.";
     type RequestArgs = RustupUpdateRequest;
 
     fn call_rmcp_tool(&self, request: Self::RequestArgs) -> Result<crate::Response, ErrorData> {

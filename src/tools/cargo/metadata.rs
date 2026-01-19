@@ -57,13 +57,7 @@ pub struct CargoMetadataRequest {
     #[serde(default, deserialize_with = "deserialize_string")]
     lockfile_path: Option<String>,
 
-    /// Locking mode for dependency resolution.
-    ///
-    /// Valid options:
-    /// - "locked" (default): Assert that `Cargo.lock` will remain unchanged
-    /// - "unlocked": Allow `Cargo.lock` to be updated
-    /// - "offline": Run without accessing the network
-    /// - "frozen": Equivalent to specifying both --locked and --offline
+    /// Locking mode for dependency resolution. Valid options: "locked" (default), "unlocked", "offline", "frozen".
     #[serde(default, deserialize_with = "deserialize_string")]
     locking_mode: Option<String>,
 }

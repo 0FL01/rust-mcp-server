@@ -15,12 +15,7 @@ pub struct CargoSearchRequest {
     /// Registry to search packages in
     #[serde(default, deserialize_with = "deserialize_string")]
     pub registry: Option<String>,
-    /// Output verbosity level.
-    ///
-    /// Valid options:
-    /// - "quiet" (default): Show only the essential command output
-    /// - "normal": Show standard output (no additional flags)
-    /// - "verbose": Show detailed output including build information
+    /// Output verbosity level. Valid options: "quiet" (default), "normal", "verbose".
     #[serde(default, deserialize_with = "deserialize_string")]
     output_verbosity: Option<String>,
 }

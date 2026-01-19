@@ -156,22 +156,11 @@ pub struct CargoCleanRequest {
     #[serde(default, deserialize_with = "deserialize_string")]
     lockfile_path: Option<String>,
 
-    /// Locking mode for dependency resolution.
-    ///
-    /// Valid options:
-    /// - "locked" (default): Assert that `Cargo.lock` will remain unchanged
-    /// - "unlocked": Allow `Cargo.lock` to be updated
-    /// - "offline": Run without accessing the network
-    /// - "frozen": Equivalent to specifying both --locked and --offline
+    /// Locking mode for dependency resolution. Valid options: "locked" (default), "unlocked", "offline", "frozen".
     #[serde(default, deserialize_with = "deserialize_string")]
     locking_mode: Option<String>,
 
-    /// Output verbosity level.
-    ///
-    /// Valid options:
-    /// - "quiet" (default): Show only the essential command output
-    /// - "normal": Show standard output (no additional flags)
-    /// - "verbose": Show detailed output including build information
+    /// Output verbosity level. Valid options: "quiet" (default), "normal", "verbose".
     #[serde(default, deserialize_with = "deserialize_string")]
     output_verbosity: Option<String>,
 }
@@ -275,12 +264,7 @@ pub struct CargoFmtRequest {
     #[serde(default, deserialize_with = "deserialize_string")]
     message_format: Option<String>,
 
-    /// Output verbosity level.
-    ///
-    /// Valid options:
-    /// - "quiet" (default): Show only the essential command output
-    /// - "normal": Show standard output (no additional flags)
-    /// - "verbose": Show detailed output including build information
+    /// Output verbosity level. Valid options: "quiet" (default), "normal", "verbose".
     #[serde(default, deserialize_with = "deserialize_string")]
     output_verbosity: Option<String>,
 }
@@ -386,22 +370,11 @@ pub struct CargoNewRequest {
     #[serde(default, deserialize_with = "deserialize_string")]
     pub registry: Option<String>,
 
-    /// Locking mode for dependency resolution.
-    ///
-    /// Valid options:
-    /// - "locked" (default): Assert that `Cargo.lock` will remain unchanged
-    /// - "unlocked": Allow `Cargo.lock` to be updated
-    /// - "offline": Run without accessing the network
-    /// - "frozen": Equivalent to specifying both --locked and --offline
+    /// Locking mode for dependency resolution. Valid options: "locked" (default), "unlocked", "offline", "frozen".
     #[serde(default, deserialize_with = "deserialize_string")]
     pub locking_mode: Option<String>,
 
-    /// Output verbosity level.
-    ///
-    /// Valid options:
-    /// - "quiet" (default): Show only the essential command output
-    /// - "normal": Show standard output (no additional flags)
-    /// - "verbose": Show detailed output including build information
+    /// Output verbosity level. Valid options: "quiet" (default), "normal", "verbose".
     #[serde(default, deserialize_with = "deserialize_string")]
     pub output_verbosity: Option<String>,
 }

@@ -334,7 +334,7 @@ pub struct CargoHackRmcpTool;
 impl Tool for CargoHackRmcpTool {
     const NAME: &'static str = "cargo-hack";
     const TITLE: &'static str = "Run cargo-hack";
-    const DESCRIPTION: &'static str = "Cargo subcommand to provide various options useful for testing and continuous integration, including feature testing and multi-version compatibility. Available commands: check, test, build, clippy. Recommend using 'check' for fast validation. Example: cargo-hack with \"feature_powerset\": true, \"depth\": 3, \"keep_going\": true";
+    const DESCRIPTION: &'static str = "Run cargo-hack for feature testing and CI. Supports check, test, build, clippy. Use 'check' for fast validation.";
     type RequestArgs = CargoHackRequest;
 
     fn call_rmcp_tool(&self, request: Self::RequestArgs) -> Result<crate::Response, ErrorData> {

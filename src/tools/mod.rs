@@ -5,6 +5,7 @@ pub mod cargo_deny;
 pub mod cargo_hack;
 #[cfg(feature = "cargo-machete")]
 pub mod cargo_machete;
+pub mod common;
 pub mod rustc;
 #[cfg(feature = "rustup")]
 pub mod rustup;

@@ -13,24 +13,36 @@ use rmcp::ErrorData;
 pub struct CargoPackageRequest {
     /// [Optional] The toolchain to use for packaging, e.g., "stable", "nightly", or "1.70.0".
     /// When specified, cargo will use this specific Rust toolchain version.
-    #[serde(default, deserialize_with = "deserialize_string")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        deserialize_with = "deserialize_string"
+    )]
     toolchain: Option<String>,
 
     /// [Optional] Specific package(s) to assemble. Can specify multiple packages by name.
     /// If not specified, packages the current package or workspace root.
     /// Example: ["my-lib", "my-binary"]
-    #[serde(default, deserialize_with = "deserialize_string_vec")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        deserialize_with = "deserialize_string_vec"
+    )]
     package: Option<Vec<String>>,
 
     /// [Optional] Assemble all packages in the workspace into separate tarballs.
     /// Useful for workspaces with multiple publishable crates.
-    #[serde(default)]
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     workspace: Option<bool>,
 
     /// [Optional] Don't assemble specified packages when using --workspace.
     /// Allows selective packaging of workspace members.
     /// Example: ["internal-tools", "test-utils"]
-    #[serde(default, deserialize_with = "deserialize_string_vec")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        deserialize_with = "deserialize_string_vec"
+    )]
     exclude: Option<Vec<String>>,
 
     /// [Optional] Print files that would be included in the package without creating the tarball.
@@ -62,79 +74,108 @@ pub struct CargoPackageRequest {
     /// [Optional] Space or comma separated list of features to activate during verification build.
     /// Only affects the build verification step, not the package contents.
     /// Example: ["serde", "async-std"]
-    #[serde(default, deserialize_with = "deserialize_string_vec")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        deserialize_with = "deserialize_string_vec"
+    )]
     features: Option<Vec<String>>,
 
     /// [Optional] Activate all available features during verification build.
     /// Ensures the package builds correctly with all feature combinations.
-    #[serde(default)]
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     all_features: Option<bool>,
 
     /// [Optional] Do not activate the `default` feature during verification build.
     /// Useful for testing minimal builds or when default features are problematic.
-    #[serde(default)]
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     no_default_features: Option<bool>,
 
     /// [Optional] Build for the specified target triple during verification.
     /// Useful for cross-compilation testing or platform-specific packages.
     /// Example: "x86_64-unknown-linux-musl"
-    #[serde(default, deserialize_with = "deserialize_string")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        deserialize_with = "deserialize_string"
+    )]
     target: Option<String>,
 
     /// [Optional] Directory for placing generated artifacts and build cache.
     /// Overrides the default target/ directory location.
-    #[serde(default, deserialize_with = "deserialize_string")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        deserialize_with = "deserialize_string"
+    )]
     target_dir: Option<String>,
 
     /// [Optional] Number of parallel jobs for the verification build.
     /// Defaults to the number of CPU cores. Set to 1 for sequential builds.
-    #[serde(default)]
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     jobs: Option<u32>,
 
     /// [Optional] Do not abort the verification build as soon as there is an error.
     /// Continues building other targets even if some fail, useful for debugging.
-    #[serde(default)]
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     keep_going: Option<bool>,
 
     /// [Optional] Path to the Cargo.toml file to package.
     /// Useful when running from a different directory or with non-standard layouts.
-    #[serde(default, deserialize_with = "deserialize_string")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        deserialize_with = "deserialize_string"
+    )]
     manifest_path: Option<String>,
 
     /// [Optional] Path to the Cargo.lock file (unstable feature).
     /// Allows using a different lock file location than the default.
-    #[serde(default, deserialize_with = "deserialize_string")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        deserialize_with = "deserialize_string"
+    )]
     lockfile_path: Option<String>,
 
-    /// Locking mode for dependency resolution.
-    ///
-    /// Valid options:
-    /// - "locked" (default): Assert that `Cargo.lock` will remain unchanged
-    /// - "unlocked": Allow `Cargo.lock` to be updated
-    /// - "offline": Run without accessing the network
-    /// - "frozen": Equivalent to specifying both --locked and --offline
-    #[serde(default, deserialize_with = "deserialize_string")]
+    /// Locking mode for dependency resolution. Valid options: "locked" (default), "unlocked", "offline", "frozen".
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        deserialize_with = "deserialize_string"
+    )]
     locking_mode: Option<String>,
 
     /// [Optional] Registry index URL to prepare the package for (unstable)
-    #[serde(default, deserialize_with = "deserialize_string")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        deserialize_with = "deserialize_string"
+    )]
     index: Option<String>,
 
     /// [Optional] Registry to prepare the package for (unstable)
-    #[serde(default, deserialize_with = "deserialize_string")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        deserialize_with = "deserialize_string"
+    )]
     registry: Option<String>,
 
     /// [Optional] Output representation (unstable) [possible values: human, json]
-    #[serde(default, deserialize_with = "deserialize_string")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        deserialize_with = "deserialize_string"
+    )]
     message_format: Option<String>,
 
-    /// [Optional] Output verbosity level.
-    ///
-    /// Valid options:
-    /// - "quiet" (default): Show only the essential command output
-    /// - "normal": Show standard output (no additional flags)
-    /// - "verbose": Show detailed output including build information
-    #[serde(default, deserialize_with = "deserialize_string")]
+    /// [Optional] {OUTPUT_VERBOSITY_DESC}
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        deserialize_with = "deserialize_string"
+    )]
     output_verbosity: Option<String>,
 }
 impl CargoPackageRequest {
@@ -259,7 +300,7 @@ pub struct CargoPackageRmcpTool;
 impl Tool for CargoPackageRmcpTool {
     const NAME: &'static str = "cargo-package";
     const TITLE: &'static str = "cargo package";
-    const DESCRIPTION: &'static str = "Assemble the local package into a distributable tarball for publishing or distribution. <br/>    <br/>    Common use cases:<br/>    - Create a .crate file for publishing to crates.io or a private registry<br/>    - Generate distribution packages for deployment or sharing<br/>    - Validate package contents before publishing (using --list)<br/>    - Test packaging process without verification (using --no-verify)<br/>    - Package workspace members selectively or all at once<br/>    <br/>    The generated tarball contains all files needed to build the package, excluding files listed in .gitignore or .cargo_vcs_info.json. <br/>    By default, the package is also built to verify it can be compiled successfully.<br/>    <br/>    Usually run without any additional arguments for single-package projects.";
+    const DESCRIPTION: &'static str = "Assemble the local package into a distributable tarball for publishing. Validates build by default. Usually run without arguments for single-package projects.";
     type RequestArgs = CargoPackageRequest;
 
     fn call_rmcp_tool(&self, request: Self::RequestArgs) -> Result<crate::Response, ErrorData> {

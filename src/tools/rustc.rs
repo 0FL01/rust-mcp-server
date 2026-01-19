@@ -33,7 +33,7 @@ pub struct RustcExplainRmcpTool;
 impl Tool for RustcExplainRmcpTool {
     const NAME: &'static str = "rustc-explain";
     const TITLE: &'static str = "Explain Rust error";
-    const DESCRIPTION: &'static str = "Provide a detailed explanation of a Rust compiler error code. This tool allows AI agents to request more information about compilation errors by providing the error code (e.g., E0001, E0308, etc.). Very useful for understanding and resolving Rust compilation errors.";
+    const DESCRIPTION: &'static str = "Explain Rust compiler error codes (e.g., E0001, E0308). Essential for understanding and resolving compilation errors.";
     type RequestArgs = RustcExplainRequest;
 
     fn call_rmcp_tool(&self, request: Self::RequestArgs) -> Result<crate::Response, ErrorData> {
