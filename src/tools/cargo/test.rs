@@ -2,24 +2,13 @@ use std::process::Command;
 
 use crate::{
     Tool, execute_command,
-    serde_utils::{
-        deserialize_string, deserialize_string_vec, locking_mode_to_cli_flags,
-        output_verbosity_to_cli_flags,
-    },
+    serde_utils::{deserialize_string, deserialize_string_vec},
 };
 use rmcp::ErrorData;
 
 #[derive(Debug, ::serde::Deserialize, ::schemars::JsonSchema)]
 pub struct CargoTestRequest {
-    /// The toolchain to use, e.g., "stable" or "nightly".
-    #[serde(
-        default,
-        skip_serializing_if = "Option::is_none",
-        deserialize_with = "deserialize_string"
-    )]
-    toolchain: Option<String>,
-
-    /// If specified, only run tests containing this string in their names
+    #[schemars(description = "")]
     #[serde(
         default,
         skip_serializing_if = "Option::is_none",
@@ -27,7 +16,7 @@ pub struct CargoTestRequest {
     )]
     testname: Option<String>,
 
-    /// Arguments for the test binary (after --)
+    #[schemars(description = "")]
     #[serde(
         default,
         skip_serializing_if = "Option::is_none",
@@ -35,15 +24,15 @@ pub struct CargoTestRequest {
     )]
     test_args: Option<Vec<String>>,
 
-    /// Compile, but don't run tests
+    #[schemars(description = "")]
     #[serde(default, skip_serializing_if = "Option::is_none")]
     no_run: Option<bool>,
 
-    /// Run all tests regardless of failure
+    #[schemars(description = "")]
     #[serde(default, skip_serializing_if = "Option::is_none")]
     no_fail_fast: Option<bool>,
 
-    /// Package(s) to run tests for
+    #[schemars(description = "")]
     #[serde(
         default,
         skip_serializing_if = "Option::is_none",
@@ -51,11 +40,11 @@ pub struct CargoTestRequest {
     )]
     package: Option<Vec<String>>,
 
-    /// Test all packages in the workspace
+    #[schemars(description = "")]
     #[serde(default, skip_serializing_if = "Option::is_none")]
     workspace: Option<bool>,
 
-    /// Exclude packages from the test
+    #[schemars(description = "")]
     #[serde(
         default,
         skip_serializing_if = "Option::is_none",
@@ -63,15 +52,15 @@ pub struct CargoTestRequest {
     )]
     exclude: Option<Vec<String>>,
 
-    /// Test only this package's library
+    #[schemars(description = "")]
     #[serde(default, skip_serializing_if = "Option::is_none")]
     lib: Option<bool>,
 
-    /// Test all binaries
+    #[schemars(description = "")]
     #[serde(default, skip_serializing_if = "Option::is_none")]
     bins: Option<bool>,
 
-    /// Test only the specified binary
+    #[schemars(description = "")]
     #[serde(
         default,
         skip_serializing_if = "Option::is_none",
@@ -79,11 +68,11 @@ pub struct CargoTestRequest {
     )]
     bin: Option<String>,
 
-    /// Test all examples
+    #[schemars(description = "")]
     #[serde(default, skip_serializing_if = "Option::is_none")]
     examples: Option<bool>,
 
-    /// Test only the specified example
+    #[schemars(description = "")]
     #[serde(
         default,
         skip_serializing_if = "Option::is_none",
@@ -91,11 +80,11 @@ pub struct CargoTestRequest {
     )]
     example: Option<String>,
 
-    /// Test all targets that have `test = true` set
+    #[schemars(description = "")]
     #[serde(default, skip_serializing_if = "Option::is_none")]
     tests: Option<bool>,
 
-    /// Test only the specified test target
+    #[schemars(description = "")]
     #[serde(
         default,
         skip_serializing_if = "Option::is_none",
@@ -103,11 +92,11 @@ pub struct CargoTestRequest {
     )]
     test: Option<String>,
 
-    /// Test all targets that have `bench = true` set
+    #[schemars(description = "")]
     #[serde(default, skip_serializing_if = "Option::is_none")]
     benches: Option<bool>,
 
-    /// Test only the specified bench target
+    #[schemars(description = "")]
     #[serde(
         default,
         skip_serializing_if = "Option::is_none",
@@ -115,15 +104,15 @@ pub struct CargoTestRequest {
     )]
     bench: Option<String>,
 
-    /// Test all targets (does not include doctests)
+    #[schemars(description = "")]
     #[serde(default, skip_serializing_if = "Option::is_none")]
     all_targets: Option<bool>,
 
-    /// Test only this library's documentation
+    #[schemars(description = "")]
     #[serde(default, skip_serializing_if = "Option::is_none")]
     doc: Option<bool>,
 
-    /// Space or comma separated list of features to activate
+    #[schemars(description = "")]
     #[serde(
         default,
         skip_serializing_if = "Option::is_none",
@@ -131,23 +120,23 @@ pub struct CargoTestRequest {
     )]
     features: Option<Vec<String>>,
 
-    /// Activate all available features
+    #[schemars(description = "")]
     #[serde(default, skip_serializing_if = "Option::is_none")]
     all_features: Option<bool>,
 
-    /// Do not activate the `default` feature
+    #[schemars(description = "")]
     #[serde(default, skip_serializing_if = "Option::is_none")]
     no_default_features: Option<bool>,
 
-    /// Number of parallel jobs, defaults to # of CPUs
+    #[schemars(description = "")]
     #[serde(default, skip_serializing_if = "Option::is_none")]
     jobs: Option<u32>,
 
-    /// Build artifacts in release mode, with optimizations
+    #[schemars(description = "")]
     #[serde(default, skip_serializing_if = "Option::is_none")]
     release: Option<bool>,
 
-    /// Build artifacts with the specified profile
+    #[schemars(description = "")]
     #[serde(
         default,
         skip_serializing_if = "Option::is_none",
@@ -155,64 +144,17 @@ pub struct CargoTestRequest {
     )]
     profile: Option<String>,
 
-    /// Build for the target triple
+    #[schemars(description = "")]
     #[serde(
         default,
         skip_serializing_if = "Option::is_none",
         deserialize_with = "deserialize_string"
     )]
     target: Option<String>,
-
-    /// Directory for all generated artifacts
-    #[serde(
-        default,
-        skip_serializing_if = "Option::is_none",
-        deserialize_with = "deserialize_string"
-    )]
-    target_dir: Option<String>,
-
-    /// Path to Cargo.toml
-    #[serde(
-        default,
-        skip_serializing_if = "Option::is_none",
-        deserialize_with = "deserialize_string"
-    )]
-    manifest_path: Option<String>,
-
-    /// Path to Cargo.lock (unstable)
-    #[serde(
-        default,
-        skip_serializing_if = "Option::is_none",
-        deserialize_with = "deserialize_string"
-    )]
-    lockfile_path: Option<String>,
-
-    /// Ignore `rust-version` specification in packages
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    ignore_rust_version: Option<bool>,
-
-    /// Locking mode for dependency resolution. Valid options: "locked" (default), "unlocked", "offline", "frozen".
-    #[serde(
-        default,
-        skip_serializing_if = "Option::is_none",
-        deserialize_with = "deserialize_string"
-    )]
-    locking_mode: Option<String>,
-
-    /// Output verbosity level. Valid options: "quiet" (default), "normal", "verbose".
-    #[serde(
-        default,
-        skip_serializing_if = "Option::is_none",
-        deserialize_with = "deserialize_string"
-    )]
-    output_verbosity: Option<String>,
 }
 impl CargoTestRequest {
     pub fn build_cmd(&self) -> Result<Command, ErrorData> {
         let mut cmd = Command::new("cargo");
-        if let Some(toolchain) = &self.toolchain {
-            cmd.arg(format!("+{toolchain}"));
-        }
         cmd.arg("test");
 
         // Add testname argument if provided
@@ -322,33 +264,6 @@ impl CargoTestRequest {
         if let Some(target) = &self.target {
             cmd.arg("--target").arg(target);
         }
-
-        if let Some(target_dir) = &self.target_dir {
-            cmd.arg("--target-dir").arg(target_dir);
-        }
-
-        // Manifest options
-        if let Some(manifest_path) = &self.manifest_path {
-            cmd.arg("--manifest-path").arg(manifest_path);
-        }
-
-        if let Some(lockfile_path) = &self.lockfile_path {
-            cmd.arg("--lockfile-path").arg(lockfile_path);
-        }
-
-        if self.ignore_rust_version.unwrap_or(false) {
-            cmd.arg("--ignore-rust-version");
-        }
-
-        // Apply locking mode flags
-        let locking_flags = locking_mode_to_cli_flags(self.locking_mode.as_deref(), "locked")?;
-        for flag in locking_flags {
-            cmd.arg(flag);
-        }
-
-        // Output options
-        let output_flags = output_verbosity_to_cli_flags(self.output_verbosity.as_deref())?;
-        cmd.args(output_flags);
 
         // Pass test binary args after --
         if let Some(test_args) = &self.test_args {

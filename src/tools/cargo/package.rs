@@ -2,27 +2,13 @@ use std::process::Command;
 
 use crate::{
     Tool, execute_command,
-    serde_utils::{
-        deserialize_string, deserialize_string_vec, locking_mode_to_cli_flags,
-        output_verbosity_to_cli_flags,
-    },
+    serde_utils::{deserialize_string, deserialize_string_vec},
 };
 use rmcp::ErrorData;
 
 #[derive(Debug, ::serde::Deserialize, schemars::JsonSchema)]
 pub struct CargoPackageRequest {
-    /// [Optional] The toolchain to use for packaging, e.g., "stable", "nightly", or "1.70.0".
-    /// When specified, cargo will use this specific Rust toolchain version.
-    #[serde(
-        default,
-        skip_serializing_if = "Option::is_none",
-        deserialize_with = "deserialize_string"
-    )]
-    toolchain: Option<String>,
-
-    /// [Optional] Specific package(s) to assemble. Can specify multiple packages by name.
-    /// If not specified, packages the current package or workspace root.
-    /// Example: ["my-lib", "my-binary"]
+    #[schemars(description = "")]
     #[serde(
         default,
         skip_serializing_if = "Option::is_none",
@@ -30,14 +16,11 @@ pub struct CargoPackageRequest {
     )]
     package: Option<Vec<String>>,
 
-    /// [Optional] Assemble all packages in the workspace into separate tarballs.
-    /// Useful for workspaces with multiple publishable crates.
+    #[schemars(description = "")]
     #[serde(default, skip_serializing_if = "Option::is_none")]
     workspace: Option<bool>,
 
-    /// [Optional] Don't assemble specified packages when using --workspace.
-    /// Allows selective packaging of workspace members.
-    /// Example: ["internal-tools", "test-utils"]
+    #[schemars(description = "")]
     #[serde(
         default,
         skip_serializing_if = "Option::is_none",
@@ -45,35 +28,27 @@ pub struct CargoPackageRequest {
     )]
     exclude: Option<Vec<String>>,
 
-    /// [Optional] Print files that would be included in the package without creating the tarball.
-    /// Useful for reviewing package contents and debugging .gitignore rules.
+    #[schemars(description = "")]
     #[serde(default)]
     list: bool,
 
-    /// [Optional] Don't verify the package contents by building them.
-    /// Skips the compilation step, making packaging faster but less safe.
-    /// Use when you're confident the package builds correctly.
+    #[schemars(description = "")]
     #[serde(default)]
     no_verify: bool,
 
-    /// [Optional] Ignore warnings about missing package metadata (description, license, etc.).
-    /// Allows packaging even when human-readable metadata fields are incomplete.
+    #[schemars(description = "")]
     #[serde(default)]
     no_metadata: bool,
 
-    /// [Optional] Allow packaging even when the working directory has uncommitted changes.
-    /// By default, cargo package requires a clean git working directory.
+    #[schemars(description = "")]
     #[serde(default)]
     allow_dirty: bool,
 
-    /// [Optional] Don't include Cargo.lock in the generated package.
-    /// Useful for libraries where you want users to resolve dependencies freshly.
+    #[schemars(description = "")]
     #[serde(default)]
     exclude_lockfile: bool,
 
-    /// [Optional] Space or comma separated list of features to activate during verification build.
-    /// Only affects the build verification step, not the package contents.
-    /// Example: ["serde", "async-std"]
+    #[schemars(description = "")]
     #[serde(
         default,
         skip_serializing_if = "Option::is_none",
@@ -81,19 +56,15 @@ pub struct CargoPackageRequest {
     )]
     features: Option<Vec<String>>,
 
-    /// [Optional] Activate all available features during verification build.
-    /// Ensures the package builds correctly with all feature combinations.
+    #[schemars(description = "")]
     #[serde(default, skip_serializing_if = "Option::is_none")]
     all_features: Option<bool>,
 
-    /// [Optional] Do not activate the `default` feature during verification build.
-    /// Useful for testing minimal builds or when default features are problematic.
+    #[schemars(description = "")]
     #[serde(default, skip_serializing_if = "Option::is_none")]
     no_default_features: Option<bool>,
 
-    /// [Optional] Build for the specified target triple during verification.
-    /// Useful for cross-compilation testing or platform-specific packages.
-    /// Example: "x86_64-unknown-linux-musl"
+    #[schemars(description = "")]
     #[serde(
         default,
         skip_serializing_if = "Option::is_none",
@@ -101,8 +72,7 @@ pub struct CargoPackageRequest {
     )]
     target: Option<String>,
 
-    /// [Optional] Directory for placing generated artifacts and build cache.
-    /// Overrides the default target/ directory location.
+    #[schemars(description = "")]
     #[serde(
         default,
         skip_serializing_if = "Option::is_none",
@@ -110,83 +80,18 @@ pub struct CargoPackageRequest {
     )]
     target_dir: Option<String>,
 
-    /// [Optional] Number of parallel jobs for the verification build.
-    /// Defaults to the number of CPU cores. Set to 1 for sequential builds.
+    #[schemars(description = "")]
     #[serde(default, skip_serializing_if = "Option::is_none")]
     jobs: Option<u32>,
 
-    /// [Optional] Do not abort the verification build as soon as there is an error.
-    /// Continues building other targets even if some fail, useful for debugging.
+    #[schemars(description = "")]
     #[serde(default, skip_serializing_if = "Option::is_none")]
     keep_going: Option<bool>,
-
-    /// [Optional] Path to the Cargo.toml file to package.
-    /// Useful when running from a different directory or with non-standard layouts.
-    #[serde(
-        default,
-        skip_serializing_if = "Option::is_none",
-        deserialize_with = "deserialize_string"
-    )]
-    manifest_path: Option<String>,
-
-    /// [Optional] Path to the Cargo.lock file (unstable feature).
-    /// Allows using a different lock file location than the default.
-    #[serde(
-        default,
-        skip_serializing_if = "Option::is_none",
-        deserialize_with = "deserialize_string"
-    )]
-    lockfile_path: Option<String>,
-
-    /// Locking mode for dependency resolution. Valid options: "locked" (default), "unlocked", "offline", "frozen".
-    #[serde(
-        default,
-        skip_serializing_if = "Option::is_none",
-        deserialize_with = "deserialize_string"
-    )]
-    locking_mode: Option<String>,
-
-    /// [Optional] Registry index URL to prepare the package for (unstable)
-    #[serde(
-        default,
-        skip_serializing_if = "Option::is_none",
-        deserialize_with = "deserialize_string"
-    )]
-    index: Option<String>,
-
-    /// [Optional] Registry to prepare the package for (unstable)
-    #[serde(
-        default,
-        skip_serializing_if = "Option::is_none",
-        deserialize_with = "deserialize_string"
-    )]
-    registry: Option<String>,
-
-    /// [Optional] Output representation (unstable) [possible values: human, json]
-    #[serde(
-        default,
-        skip_serializing_if = "Option::is_none",
-        deserialize_with = "deserialize_string"
-    )]
-    message_format: Option<String>,
-
-    /// [Optional] {OUTPUT_VERBOSITY_DESC}
-    #[serde(
-        default,
-        skip_serializing_if = "Option::is_none",
-        deserialize_with = "deserialize_string"
-    )]
-    output_verbosity: Option<String>,
 }
+
 impl CargoPackageRequest {
     pub fn build_cmd(&self) -> Result<Command, ErrorData> {
         let mut cmd = Command::new("cargo");
-
-        // Add toolchain if specified
-        if let Some(toolchain) = &self.toolchain {
-            cmd.arg(format!("+{toolchain}"));
-        }
-
         cmd.arg("package");
 
         // Package selection
@@ -258,38 +163,6 @@ impl CargoPackageRequest {
         if self.keep_going.unwrap_or(false) {
             cmd.arg("--keep-going");
         }
-
-        // Manifest options
-        if let Some(manifest_path) = &self.manifest_path {
-            cmd.arg("--manifest-path").arg(manifest_path);
-        }
-
-        if let Some(lockfile_path) = &self.lockfile_path {
-            cmd.arg("--lockfile-path").arg(lockfile_path);
-        }
-
-        // Apply locking mode flags
-        let locking_flags = locking_mode_to_cli_flags(self.locking_mode.as_deref(), "locked")?;
-        for flag in locking_flags {
-            cmd.arg(flag);
-        }
-
-        // Registry options
-        if let Some(index) = &self.index {
-            cmd.arg("--index").arg(index);
-        }
-
-        if let Some(registry) = &self.registry {
-            cmd.arg("--registry").arg(registry);
-        }
-
-        // Output options
-        if let Some(message_format) = &self.message_format {
-            cmd.arg("--message-format").arg(message_format);
-        }
-
-        let output_flags = output_verbosity_to_cli_flags(self.output_verbosity.as_deref())?;
-        cmd.args(output_flags);
 
         Ok(cmd)
     }

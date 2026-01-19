@@ -2,10 +2,7 @@ use std::process::Command;
 
 use crate::{
     Response, Tool, execute_command,
-    serde_utils::{
-        PackageWithVersion, deserialize_string, deserialize_string_vec, locking_mode_to_cli_flags,
-        output_verbosity_to_cli_flags,
-    },
+    serde_utils::{PackageWithVersion, deserialize_string, deserialize_string_vec},
 };
 use rmcp::ErrorData;
 
@@ -29,47 +26,33 @@ fn dependency_type_to_cli_flag(
 /// Adds a dependency to a Rust project using cargo add.
 #[derive(Debug, ::serde::Deserialize, schemars::JsonSchema)]
 pub struct CargoAddRequest {
-    /// The toolchain to use, e.g., "stable" or "nightly".
-    #[serde(
-        default,
-        skip_serializing_if = "Option::is_none",
-        deserialize_with = "deserialize_string"
-    )]
-    toolchain: Option<String>,
-
-    /// Package with optional version (e.g., {"package": "serde", "version": "1.0.0"})
+    #[schemars(description = "")]
     #[serde(flatten)]
     pub package_spec: PackageWithVersion,
-
-    /// Dependency type: "regular" (default), "dev", or "build"
+    #[schemars(description = "")]
     #[serde(
         default,
         skip_serializing_if = "Option::is_none",
         deserialize_with = "deserialize_string"
     )]
     pub dependency_type: Option<String>,
-
-    /// Add as an optional dependency
+    #[schemars(description = "")]
     #[serde(default)]
     pub optional: bool,
-
-    /// Disable the default features
+    #[schemars(description = "")]
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub no_default_features: Option<bool>,
-
-    /// Re-enable the default features
+    #[schemars(description = "")]
     #[serde(default)]
     pub default_features: bool,
-
-    /// Space or comma separated list of features to activate
+    #[schemars(description = "")]
     #[serde(
         default,
         skip_serializing_if = "Option::is_none",
         deserialize_with = "deserialize_string_vec"
     )]
     pub features: Option<Vec<String>>,
-
-    /// Rename the dependency
+    #[schemars(description = "")]
     #[serde(
         default,
         skip_serializing_if = "Option::is_none",
@@ -77,112 +60,23 @@ pub struct CargoAddRequest {
     )]
     pub rename: Option<String>,
 
-    /// Package to modify, must be specified
+    #[schemars(description = "")]
     pub target_package: String,
-
-    /// Filesystem path to local crate to add
-    #[serde(
-        default,
-        skip_serializing_if = "Option::is_none",
-        deserialize_with = "deserialize_string"
-    )]
-    pub path: Option<String>,
-
-    /// Git repository location
-    #[serde(
-        default,
-        skip_serializing_if = "Option::is_none",
-        deserialize_with = "deserialize_string"
-    )]
-    pub git: Option<String>,
-
-    /// Git branch to download the crate from
-    #[serde(
-        default,
-        skip_serializing_if = "Option::is_none",
-        deserialize_with = "deserialize_string"
-    )]
-    pub branch: Option<String>,
-
-    /// Git tag to download the crate from
-    #[serde(
-        default,
-        skip_serializing_if = "Option::is_none",
-        deserialize_with = "deserialize_string"
-    )]
-    pub tag: Option<String>,
-
-    /// Git reference to download the crate from
-    #[serde(
-        default,
-        skip_serializing_if = "Option::is_none",
-        deserialize_with = "deserialize_string"
-    )]
-    pub rev: Option<String>,
-
-    /// Package registry for this dependency
-    #[serde(
-        default,
-        skip_serializing_if = "Option::is_none",
-        deserialize_with = "deserialize_string"
-    )]
-    pub registry: Option<String>,
-
-    /// Add as dependency to the given target platform
+    #[schemars(description = "")]
     #[serde(
         default,
         skip_serializing_if = "Option::is_none",
         deserialize_with = "deserialize_string"
     )]
     pub target: Option<String>,
-
-    /// Don't actually write the manifest
+    #[schemars(description = "")]
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub dry_run: Option<bool>,
-
-    /// Path to Cargo.toml
-    #[serde(
-        default,
-        skip_serializing_if = "Option::is_none",
-        deserialize_with = "deserialize_string"
-    )]
-    pub manifest_path: Option<String>,
-
-    /// Path to Cargo.lock (unstable)
-    #[serde(
-        default,
-        skip_serializing_if = "Option::is_none",
-        deserialize_with = "deserialize_string"
-    )]
-    pub lockfile_path: Option<String>,
-
-    /// Ignore `rust-version` specification in packages
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub ignore_rust_version: Option<bool>,
-
-    /// Locking mode for dependency resolution. Valid options: "locked" (default), "unlocked", "offline", "frozen".
-    #[serde(
-        default,
-        skip_serializing_if = "Option::is_none",
-        deserialize_with = "deserialize_string"
-    )]
-    pub locking_mode: Option<String>,
-
-    /// Output verbosity level. Valid options: "quiet" (default), "normal", "verbose".
-    #[serde(
-        default,
-        skip_serializing_if = "Option::is_none",
-        deserialize_with = "deserialize_string"
-    )]
-    pub output_verbosity: Option<String>,
 }
 
 impl CargoAddRequest {
     pub fn build_cmd(&self) -> Result<Command, ErrorData> {
         let mut cmd = Command::new("cargo");
-        if let Some(toolchain) = &self.toolchain {
-            cmd.arg(format!("+{toolchain}"));
-        }
         cmd.arg("add");
 
         cmd.arg(self.package_spec.to_spec());
@@ -210,28 +104,6 @@ impl CargoAddRequest {
         // Package selection
         cmd.arg("--package").arg(&self.target_package);
 
-        // Source options
-        if let Some(path) = &self.path {
-            cmd.arg("--path").arg(path);
-        }
-        if let Some(git) = &self.git {
-            cmd.arg("--git").arg(git);
-        }
-        if let Some(branch) = &self.branch {
-            cmd.arg("--branch").arg(branch);
-        }
-        if let Some(tag) = &self.tag {
-            cmd.arg("--tag").arg(tag);
-        }
-        if let Some(rev) = &self.rev {
-            cmd.arg("--rev").arg(rev);
-        }
-
-        // Registry options
-        if let Some(registry) = &self.registry {
-            cmd.arg("--registry").arg(registry);
-        }
-
         // Target platform
         if let Some(target) = &self.target {
             cmd.arg("--target").arg(target);
@@ -246,27 +118,6 @@ impl CargoAddRequest {
         if self.dry_run.unwrap_or(false) {
             cmd.arg("--dry-run");
         }
-
-        // Manifest options
-        if let Some(manifest_path) = &self.manifest_path {
-            cmd.arg("--manifest-path").arg(manifest_path);
-        }
-        if let Some(lockfile_path) = &self.lockfile_path {
-            cmd.arg("--lockfile-path").arg(lockfile_path);
-        }
-        if self.ignore_rust_version.unwrap_or(false) {
-            cmd.arg("--ignore-rust-version");
-        }
-
-        // Apply locking mode flags
-        let locking_flags = locking_mode_to_cli_flags(self.locking_mode.as_deref(), "unlocked")?;
-        for flag in locking_flags {
-            cmd.arg(flag);
-        }
-
-        // Output options
-        let output_flags = output_verbosity_to_cli_flags(self.output_verbosity.as_deref())?;
-        cmd.args(output_flags);
 
         Ok(cmd)
     }
@@ -288,30 +139,16 @@ impl Tool for CargoAddRmcpTool {
 /// Remove dependencies from a Cargo.toml manifest file.
 #[derive(Debug, ::serde::Deserialize, schemars::JsonSchema)]
 pub struct CargoRemoveRequest {
-    /// The toolchain to use, e.g., "stable" or "nightly".
-    #[serde(
-        default,
-        skip_serializing_if = "Option::is_none",
-        deserialize_with = "deserialize_string"
-    )]
-    toolchain: Option<String>,
-
-    /// Dependencies to be removed.
-    /// Examples:
-    /// - Single dependency: ["regex"]
-    /// - Multiple dependencies: ["tokio", "clap", "serde"]
-    /// - Can be simple crate names as they appear in Cargo.toml
+    #[schemars(description = "")]
     pub dep_id: Vec<String>,
-
-    /// Dependency type: "regular" (default), "dev", or "build"
+    #[schemars(description = "")]
     #[serde(
         default,
         skip_serializing_if = "Option::is_none",
         deserialize_with = "deserialize_string"
     )]
     pub dependency_type: Option<String>,
-
-    /// Remove from target-dependencies
+    #[schemars(description = "")]
     #[serde(
         default,
         skip_serializing_if = "Option::is_none",
@@ -319,52 +156,16 @@ pub struct CargoRemoveRequest {
     )]
     pub target: Option<String>,
 
-    /// Package to remove from, must be specified
+    #[schemars(description = "")]
     pub target_package: String,
-
-    /// Don't actually write the manifest
+    #[schemars(description = "")]
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub dry_run: Option<bool>,
-
-    /// Path to Cargo.toml
-    #[serde(
-        default,
-        skip_serializing_if = "Option::is_none",
-        deserialize_with = "deserialize_string"
-    )]
-    pub manifest_path: Option<String>,
-
-    /// Path to Cargo.lock (unstable)
-    #[serde(
-        default,
-        skip_serializing_if = "Option::is_none",
-        deserialize_with = "deserialize_string"
-    )]
-    pub lockfile_path: Option<String>,
-
-    /// Locking mode for dependency resolution. Valid options: "locked" (default), "unlocked", "offline", "frozen".
-    #[serde(
-        default,
-        skip_serializing_if = "Option::is_none",
-        deserialize_with = "deserialize_string"
-    )]
-    pub locking_mode: Option<String>,
-
-    /// Output verbosity level. Valid options: "quiet" (default), "normal", "verbose".
-    #[serde(
-        default,
-        skip_serializing_if = "Option::is_none",
-        deserialize_with = "deserialize_string"
-    )]
-    pub output_verbosity: Option<String>,
 }
 
 impl CargoRemoveRequest {
     pub fn build_cmd(&self) -> Result<Command, ErrorData> {
         let mut cmd = Command::new("cargo");
-        if let Some(toolchain) = &self.toolchain {
-            cmd.arg(format!("+{toolchain}"));
-        }
         cmd.arg("remove");
 
         // Add dependency names
@@ -389,24 +190,6 @@ impl CargoRemoveRequest {
         if self.dry_run.unwrap_or(false) {
             cmd.arg("--dry-run");
         }
-
-        // Manifest options
-        if let Some(manifest_path) = &self.manifest_path {
-            cmd.arg("--manifest-path").arg(manifest_path);
-        }
-        if let Some(lockfile_path) = &self.lockfile_path {
-            cmd.arg("--lockfile-path").arg(lockfile_path);
-        }
-
-        // Apply locking mode flags
-        let locking_flags = locking_mode_to_cli_flags(self.locking_mode.as_deref(), "unlocked")?;
-        for flag in locking_flags {
-            cmd.arg(flag);
-        }
-
-        // Output options
-        let output_flags = output_verbosity_to_cli_flags(self.output_verbosity.as_deref())?;
-        cmd.args(output_flags);
 
         Ok(cmd)
     }

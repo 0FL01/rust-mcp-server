@@ -5,187 +5,102 @@ use rmcp::{ErrorData, model::RawContent};
 
 use crate::{
     Tool, execute_command,
-    serde_utils::{
-        deserialize_string, deserialize_string_vec, locking_mode_to_cli_flags,
-        output_verbosity_to_cli_flags,
-    },
+    serde_utils::{deserialize_string, deserialize_string_vec},
     tools::WORKSPACE_ROOT,
 };
 
 #[derive(Debug, ::serde::Deserialize, ::schemars::JsonSchema)]
 pub struct CargoDocRequest {
-    /// The toolchain to use, e.g., "stable" or "nightly".
-    #[serde(
-        default,
-        skip_serializing_if = "Option::is_none",
-        deserialize_with = "deserialize_string"
-    )]
-    toolchain: Option<String>,
-
-    /// Package(s) to document. If not specified, documents the current package/workspace.
-    /// Recommended to specify specific packages for faster builds.
+    #[schemars(description = "")]
     #[serde(
         default,
         skip_serializing_if = "Option::is_none",
         deserialize_with = "deserialize_string_vec"
     )]
     package: Option<Vec<String>>,
-
-    /// Document all packages in the workspace
+    #[schemars(description = "")]
     #[serde(default, skip_serializing_if = "Option::is_none")]
     workspace: Option<bool>,
-
-    /// Exclude packages from documentation build
+    #[schemars(description = "")]
     #[serde(
         default,
         skip_serializing_if = "Option::is_none",
         deserialize_with = "deserialize_string_vec"
     )]
     exclude: Option<Vec<String>>,
-
-    /// Don't build documentation for dependencies (recommended for faster builds)
+    #[schemars(description = "")]
     #[serde(default, skip_serializing_if = "Option::is_none")]
     no_deps: Option<bool>,
-
-    /// Document private items
+    #[schemars(description = "")]
     #[serde(default, skip_serializing_if = "Option::is_none")]
     document_private_items: Option<bool>,
-
-    /// Enable docs.rs configuration for additional features (sets RUSTDOCFLAGS="--cfg docsrs")
+    #[schemars(description = "")]
     #[serde(default, skip_serializing_if = "Option::is_none")]
     docsrs_config: Option<bool>,
-
-    /// Document only this package's library
+    #[schemars(description = "")]
     #[serde(default, skip_serializing_if = "Option::is_none")]
     lib: Option<bool>,
-
-    /// Document all binaries
+    #[schemars(description = "")]
     #[serde(default, skip_serializing_if = "Option::is_none")]
     bins: Option<bool>,
-
-    /// Document only the specified binary
+    #[schemars(description = "")]
     #[serde(
         default,
         skip_serializing_if = "Option::is_none",
         deserialize_with = "deserialize_string"
     )]
     bin: Option<String>,
-
-    /// Document all examples
+    #[schemars(description = "")]
     #[serde(default, skip_serializing_if = "Option::is_none")]
     examples: Option<bool>,
-
-    /// Document only the specified example
+    #[schemars(description = "")]
     #[serde(
         default,
         skip_serializing_if = "Option::is_none",
         deserialize_with = "deserialize_string"
     )]
     example: Option<String>,
-
-    /// Space or comma separated list of features to activate
+    #[schemars(description = "")]
     #[serde(
         default,
         skip_serializing_if = "Option::is_none",
         deserialize_with = "deserialize_string_vec"
     )]
     features: Option<Vec<String>>,
-
-    /// Activate all available features
+    #[schemars(description = "")]
     #[serde(default, skip_serializing_if = "Option::is_none")]
     all_features: Option<bool>,
-
-    /// Do not activate the `default` feature
+    #[schemars(description = "")]
     #[serde(default, skip_serializing_if = "Option::is_none")]
     no_default_features: Option<bool>,
-
-    /// Build artifacts in release mode, with optimizations
+    #[schemars(description = "")]
     #[serde(default, skip_serializing_if = "Option::is_none")]
     release: Option<bool>,
-
-    /// Build artifacts with the specified profile
+    #[schemars(description = "")]
     #[serde(
         default,
         skip_serializing_if = "Option::is_none",
         deserialize_with = "deserialize_string"
     )]
     profile: Option<String>,
-
-    /// Number of parallel jobs, defaults to # of CPUs
+    #[schemars(description = "")]
     #[serde(default, skip_serializing_if = "Option::is_none")]
     jobs: Option<u32>,
-
-    /// Do not abort the build as soon as there is an error
+    #[schemars(description = "")]
     #[serde(default, skip_serializing_if = "Option::is_none")]
     keep_going: Option<bool>,
-
-    /// Build for the target triple
+    #[schemars(description = "")]
     #[serde(
         default,
         skip_serializing_if = "Option::is_none",
         deserialize_with = "deserialize_string"
     )]
     target: Option<String>,
-
-    /// Directory for all generated artifacts
-    #[serde(
-        default,
-        skip_serializing_if = "Option::is_none",
-        deserialize_with = "deserialize_string"
-    )]
-    target_dir: Option<String>,
-
-    /// Path to Cargo.toml
-    #[serde(
-        default,
-        skip_serializing_if = "Option::is_none",
-        deserialize_with = "deserialize_string"
-    )]
-    manifest_path: Option<String>,
-
-    /// Path to Cargo.lock (unstable)
-    #[serde(
-        default,
-        skip_serializing_if = "Option::is_none",
-        deserialize_with = "deserialize_string"
-    )]
-    lockfile_path: Option<String>,
-
-    /// Ignore `rust-version` specification in packages
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    ignore_rust_version: Option<bool>,
-
-    /// Locking mode for dependency resolution. Valid options: "locked" (default), "unlocked", "offline", "frozen".
-    #[serde(
-        default,
-        skip_serializing_if = "Option::is_none",
-        deserialize_with = "deserialize_string"
-    )]
-    locking_mode: Option<String>,
-
-    /// Output verbosity level. Valid options: "quiet" (default), "normal", "verbose".
-    #[serde(
-        default,
-        skip_serializing_if = "Option::is_none",
-        deserialize_with = "deserialize_string"
-    )]
-    output_verbosity: Option<String>,
-
-    /// Error format
-    #[serde(
-        default,
-        skip_serializing_if = "Option::is_none",
-        deserialize_with = "deserialize_string"
-    )]
-    message_format: Option<String>,
 }
 
 impl CargoDocRequest {
     pub fn build_cmd(&self) -> Result<Command, ErrorData> {
         let mut cmd = Command::new("cargo");
-        if let Some(toolchain) = &self.toolchain {
-            cmd.arg(format!("+{toolchain}"));
-        }
         cmd.arg("doc");
 
         // Package selection
@@ -274,42 +189,11 @@ impl CargoDocRequest {
             cmd.arg("--target").arg(target);
         }
 
-        if let Some(target_dir) = &self.target_dir {
-            cmd.arg("--target-dir").arg(target_dir);
-        }
-
-        // Manifest options
-        if let Some(manifest_path) = &self.manifest_path {
-            cmd.arg("--manifest-path").arg(manifest_path);
-        }
-
-        if let Some(lockfile_path) = &self.lockfile_path {
-            cmd.arg("--lockfile-path").arg(lockfile_path);
-        }
-
-        if self.ignore_rust_version.unwrap_or(false) {
-            cmd.arg("--ignore-rust-version");
-        }
-
-        // Apply locking mode flags
-        let locking_flags = locking_mode_to_cli_flags(self.locking_mode.as_deref(), "locked")?;
-        for flag in locking_flags {
-            cmd.arg(flag);
-        }
-
-        // Output options
-        let output_flags = output_verbosity_to_cli_flags(self.output_verbosity.as_deref())?;
-        cmd.args(output_flags);
-
-        if let Some(message_format) = &self.message_format {
-            cmd.arg("--message-format").arg(message_format);
-        }
-
         Ok(cmd)
     }
 
     fn get_doc_path(&self) -> Option<String> {
-        let base_dir = self.target_dir.as_deref().unwrap_or("target");
+        let base_dir = "target";
 
         // Get the base documentation directory
         let doc_dir = if let Some(target) = &self.target {

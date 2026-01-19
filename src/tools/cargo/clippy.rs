@@ -3,194 +3,122 @@ use std::process::Command;
 use crate::{
     Tool,
     command::execute_command,
-    serde_utils::{
-        deserialize_string, deserialize_string_vec, locking_mode_to_cli_flags,
-        output_verbosity_to_cli_flags,
-    },
+    serde_utils::{deserialize_string, deserialize_string_vec},
     tools::cargo::CargoFmtRmcpTool,
 };
 use rmcp::ErrorData;
 
 #[derive(Debug, ::serde::Deserialize, schemars::JsonSchema)]
 pub struct CargoClippyRequest {
-    /// The toolchain to use, e.g., "stable" or "nightly".
-    #[serde(
-        default,
-        skip_serializing_if = "Option::is_none",
-        deserialize_with = "deserialize_string"
-    )]
-    toolchain: Option<String>,
-
-    /// Package(s) to check
+    #[schemars(description = "")]
     #[serde(
         default,
         skip_serializing_if = "Option::is_none",
         deserialize_with = "deserialize_string_vec"
     )]
     package: Option<Vec<String>>,
-
-    /// Check all packages in the workspace
+    #[schemars(description = "")]
     #[serde(default, skip_serializing_if = "Option::is_none")]
     workspace: Option<bool>,
-
-    /// Exclude packages from the check
+    #[schemars(description = "")]
     #[serde(
         default,
         skip_serializing_if = "Option::is_none",
         deserialize_with = "deserialize_string_vec"
     )]
     exclude: Option<Vec<String>>,
-
-    /// Run Clippy only on the given crate, without linting the dependencies
+    #[schemars(description = "")]
     #[serde(default, skip_serializing_if = "Option::is_none")]
     no_deps: Option<bool>,
-
-    /// Allow dirty working directory (unstaged changes). Works only with `fix`.
+    #[schemars(description = "")]
     #[serde(default, skip_serializing_if = "Option::is_none")]
     allow_dirty: Option<bool>,
-
-    /// Automatically apply lint suggestions (implies --no-deps and --all-targets)
+    #[schemars(description = "")]
     #[serde(default, skip_serializing_if = "Option::is_none")]
     fix: Option<bool>,
-
-    /// Check artifacts in release mode, with optimizations
+    #[schemars(description = "")]
     #[serde(default, skip_serializing_if = "Option::is_none")]
     release: Option<bool>,
-
-    /// Check all targets (lib, bins, examples, tests, benches)
+    #[schemars(description = "")]
     #[serde(default, skip_serializing_if = "Option::is_none")]
     all_targets: Option<bool>,
-
-    /// Check only this package's library
+    #[schemars(description = "")]
     #[serde(default, skip_serializing_if = "Option::is_none")]
     lib: Option<bool>,
-
-    /// Check all binaries
+    #[schemars(description = "")]
     #[serde(default, skip_serializing_if = "Option::is_none")]
     bins: Option<bool>,
-
-    /// Check only the specified binary
+    #[schemars(description = "")]
     #[serde(
         default,
         skip_serializing_if = "Option::is_none",
         deserialize_with = "deserialize_string"
     )]
     bin: Option<String>,
-
-    /// Check all examples
+    #[schemars(description = "")]
     #[serde(default, skip_serializing_if = "Option::is_none")]
     examples: Option<bool>,
-
-    /// Check only the specified example
+    #[schemars(description = "")]
     #[serde(
         default,
         skip_serializing_if = "Option::is_none",
         deserialize_with = "deserialize_string"
     )]
     example: Option<String>,
-
-    /// Check all tests
+    #[schemars(description = "")]
     #[serde(default, skip_serializing_if = "Option::is_none")]
     tests: Option<bool>,
-
-    /// Check only the specified test target
+    #[schemars(description = "")]
     #[serde(
         default,
         skip_serializing_if = "Option::is_none",
         deserialize_with = "deserialize_string"
     )]
     test: Option<String>,
-
-    /// Check all targets that have `bench = true` set
+    #[schemars(description = "")]
     #[serde(default, skip_serializing_if = "Option::is_none")]
     benches: Option<bool>,
-
-    /// Check only the specified bench target
+    #[schemars(description = "")]
     #[serde(
         default,
         skip_serializing_if = "Option::is_none",
         deserialize_with = "deserialize_string"
     )]
     bench: Option<String>,
-
-    /// Space or comma separated list of features to activate
+    #[schemars(description = "")]
     #[serde(
         default,
         skip_serializing_if = "Option::is_none",
         deserialize_with = "deserialize_string_vec"
     )]
     features: Option<Vec<String>>,
-
-    /// Activate all available features
+    #[schemars(description = "")]
     #[serde(default, skip_serializing_if = "Option::is_none")]
     all_features: Option<bool>,
-
-    /// Do not activate the default feature
+    #[schemars(description = "")]
     #[serde(default, skip_serializing_if = "Option::is_none")]
     no_default_features: Option<bool>,
-
-    /// Check artifacts with the specified profile
+    #[schemars(description = "")]
     #[serde(
         default,
         skip_serializing_if = "Option::is_none",
         deserialize_with = "deserialize_string"
     )]
     profile: Option<String>,
-
-    /// Check for the specified target triple
+    #[schemars(description = "")]
     #[serde(
         default,
         skip_serializing_if = "Option::is_none",
         deserialize_with = "deserialize_string"
     )]
     target: Option<String>,
-
-    /// Directory for all generated artifacts
-    #[serde(
-        default,
-        skip_serializing_if = "Option::is_none",
-        deserialize_with = "deserialize_string"
-    )]
-    target_dir: Option<String>,
-
-    /// Path to Cargo.toml
-    #[serde(
-        default,
-        skip_serializing_if = "Option::is_none",
-        deserialize_with = "deserialize_string"
-    )]
-    manifest_path: Option<String>,
-
-    /// Ignore `rust-version` specification in packages
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    ignore_rust_version: Option<bool>,
-
-    /// Locking mode for dependency resolution. Valid options: "locked" (default), "unlocked", "offline", "frozen".
-    #[serde(
-        default,
-        skip_serializing_if = "Option::is_none",
-        deserialize_with = "deserialize_string"
-    )]
-    locking_mode: Option<String>,
-
-    /// Output verbosity level. Valid options: "quiet" (default), "normal", "verbose".
-    #[serde(
-        default,
-        skip_serializing_if = "Option::is_none",
-        deserialize_with = "deserialize_string"
-    )]
-    output_verbosity: Option<String>,
-
-    /// Treat warnings as errors
+    #[schemars(description = "")]
     #[serde(default, skip_serializing_if = "Option::is_none")]
     warnings_as_errors: Option<bool>,
 }
 impl CargoClippyRequest {
     pub fn build_cmd(&self) -> Result<Command, ErrorData> {
         let mut cmd = Command::new("cargo");
-        if let Some(toolchain) = &self.toolchain {
-            cmd.arg(format!("+{toolchain}"));
-        }
         cmd.arg("clippy");
 
         // Package selection
@@ -234,10 +162,6 @@ impl CargoClippyRequest {
 
         if let Some(target) = &self.target {
             cmd.arg("--target").arg(target);
-        }
-
-        if let Some(target_dir) = &self.target_dir {
-            cmd.arg("--target-dir").arg(target_dir);
         }
 
         // Target selection
@@ -293,25 +217,6 @@ impl CargoClippyRequest {
         if self.no_default_features.unwrap_or(false) {
             cmd.arg("--no-default-features");
         }
-
-        // Manifest options
-        if let Some(manifest_path) = &self.manifest_path {
-            cmd.arg("--manifest-path").arg(manifest_path);
-        }
-
-        if self.ignore_rust_version.unwrap_or(false) {
-            cmd.arg("--ignore-rust-version");
-        }
-
-        // Apply locking mode flags
-        let locking_flags = locking_mode_to_cli_flags(self.locking_mode.as_deref(), "locked")?;
-        for flag in locking_flags {
-            cmd.arg(flag);
-        }
-
-        // Output options
-        let output_flags = output_verbosity_to_cli_flags(self.output_verbosity.as_deref())?;
-        cmd.args(output_flags);
 
         if self.warnings_as_errors.unwrap_or(false) {
             cmd.env("RUSTFLAGS", "-D warnings");

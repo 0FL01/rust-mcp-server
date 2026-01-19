@@ -2,7 +2,7 @@ use std::process::Command;
 
 use crate::{
     Tool, execute_command,
-    serde_utils::{deserialize_string, deserialize_string_vec, output_verbosity_to_cli_flags},
+    serde_utils::{deserialize_string, deserialize_string_vec},
 };
 use rmcp::ErrorData;
 
@@ -11,145 +11,101 @@ fn default_check() -> String {
 }
 
 #[derive(Debug, ::serde::Deserialize, schemars::JsonSchema)]
+#[schemars(description = "")]
 pub struct CargoHackRequest {
-    /// The cargo command to run (check, test, build, clippy)
+    #[schemars(description = "")]
     #[serde(default = "default_check")]
     command: String,
-
-    /// Package(s) to check
     #[serde(default, deserialize_with = "deserialize_string_vec")]
     package: Option<Vec<String>>,
-
-    /// Perform command for all packages in the workspace
+    #[schemars(description = "")]
     #[serde(default)]
     workspace: Option<bool>,
-
-    /// Exclude packages from the check
+    #[schemars(description = "")]
     #[serde(default, deserialize_with = "deserialize_string_vec")]
     exclude: Option<Vec<String>>,
-
-    /// Path to Cargo.toml
-    #[serde(default, deserialize_with = "deserialize_string")]
-    manifest_path: Option<String>,
-
-    /// Require Cargo.lock is up to date
+    #[schemars(description = "")]
     #[serde(default)]
     locked: Option<bool>,
-
-    /// Space or comma separated list of features to activate
+    #[schemars(description = "")]
     #[serde(default, deserialize_with = "deserialize_string_vec")]
     features: Option<Vec<String>>,
-
-    /// Perform for each feature of the package
+    #[schemars(description = "")]
     #[serde(default)]
     each_feature: Option<bool>,
-
-    /// Perform for the feature powerset of the package
+    #[schemars(description = "")]
     #[serde(default)]
     feature_powerset: Option<bool>,
-
-    /// Use optional dependencies as features
+    #[schemars(description = "")]
     #[serde(default, deserialize_with = "deserialize_string_vec")]
     optional_deps: Option<Vec<String>>,
-
-    /// Space or comma separated list of features to exclude
+    #[schemars(description = "")]
     #[serde(default, deserialize_with = "deserialize_string_vec")]
     exclude_features: Option<Vec<String>>,
-
-    /// Exclude run of just --no-default-features flag
+    #[schemars(description = "")]
     #[serde(default)]
     exclude_no_default_features: Option<bool>,
-
-    /// Exclude run of just --all-features flag
+    #[schemars(description = "")]
     #[serde(default)]
     exclude_all_features: Option<bool>,
 
-    /// Specify a max number of simultaneous feature flags of --feature-powerset
+    #[schemars(description = "")]
     depth: Option<u32>,
-
-    /// Space or comma separated list of features to group
     #[serde(default, deserialize_with = "deserialize_string_vec")]
     group_features: Option<Vec<String>>,
-
-    /// Build for specified target triple
+    #[schemars(description = "")]
     #[serde(default, deserialize_with = "deserialize_string_vec")]
     target: Option<Vec<String>>,
-
-    /// Space or comma separated list of features to not use together
+    #[schemars(description = "")]
     #[serde(default, deserialize_with = "deserialize_string_vec")]
     mutually_exclusive_features: Option<Vec<String>>,
-
-    /// Include only the specified features in the feature combinations
+    #[schemars(description = "")]
     #[serde(default, deserialize_with = "deserialize_string_vec")]
     include_features: Option<Vec<String>>,
-
-    /// Perform without dev-dependencies
+    #[schemars(description = "")]
     #[serde(default)]
     no_dev_deps: Option<bool>,
-
-    /// Equivalent to --no-dev-deps flag except for does not restore the original Cargo.toml
+    #[schemars(description = "")]
     #[serde(default)]
     remove_dev_deps: Option<bool>,
-
-    /// Perform without `publish = false` crates
+    #[schemars(description = "")]
     #[serde(default)]
     no_private: Option<bool>,
-
-    /// Skip to perform on `publish = false` packages
+    #[schemars(description = "")]
     #[serde(default)]
     ignore_private: Option<bool>,
-
-    /// Skip passing --features flag to cargo if that feature does not exist
+    #[schemars(description = "")]
     #[serde(default)]
     ignore_unknown_features: Option<bool>,
-
-    /// Perform commands on `package.rust-version`
+    #[schemars(description = "")]
     #[serde(default)]
     rust_version: Option<bool>,
-
-    /// Perform commands on a specified (inclusive) range of Rust versions
+    #[schemars(description = "")]
     #[serde(default, deserialize_with = "deserialize_string")]
     version_range: Option<String>,
 
-    /// Specify the version interval of --version-range (default to 1)
+    #[schemars(description = "")]
     version_step: Option<u32>,
-
-    /// Remove artifacts for that package before running the command
     #[serde(default)]
     clean_per_run: Option<bool>,
-
-    /// Remove artifacts per Rust version
+    #[schemars(description = "")]
     #[serde(default)]
     clean_per_version: Option<bool>,
-
-    /// Keep going on failure
+    #[schemars(description = "")]
     #[serde(default)]
     keep_going: Option<bool>,
-
-    /// Partition runs and execute only its subset according to M/N
+    #[schemars(description = "")]
     #[serde(default, deserialize_with = "deserialize_string")]
     partition: Option<String>,
-
-    /// Log grouping: none, github-actions
+    #[schemars(description = "")]
     #[serde(default, deserialize_with = "deserialize_string")]
     log_group: Option<String>,
-
-    /// Print commands without run (Unstable)
+    #[schemars(description = "")]
     #[serde(default)]
     print_command_list: Option<bool>,
-
-    /// Do not pass --manifest-path option to cargo (Unstable)
+    #[schemars(description = "")]
     #[serde(default)]
     no_manifest_path: Option<bool>,
-
-    /// Output verbosity level.
-    ///
-    /// Valid options:
-    /// - "quiet" (default): Show standard output (no additional flags)
-    /// - "normal": Show standard output (no additional flags)
-    /// - "verbose": Show detailed output
-    #[serde(default, deserialize_with = "deserialize_string")]
-    output_verbosity: Option<String>,
 }
 
 impl CargoHackRequest {
@@ -183,11 +139,6 @@ impl CargoHackRequest {
             for exclude in excludes {
                 cmd.arg("--exclude").arg(exclude);
             }
-        }
-
-        // Manifest options
-        if let Some(manifest_path) = &self.manifest_path {
-            cmd.arg("--manifest-path").arg(manifest_path);
         }
 
         if self.locked.unwrap_or(true) {
@@ -318,11 +269,7 @@ impl CargoHackRequest {
             cmd.arg("--no-manifest-path");
         }
 
-        // Output options
-        let output_flags = output_verbosity_to_cli_flags(self.output_verbosity.as_deref())?;
-        cmd.args(output_flags);
-
-        // Add the cargo command to run (e.g., check, test, build)
+        // Add cargo command to run (e.g., check, test, build)
         cmd.arg(&self.command);
 
         Ok(cmd)

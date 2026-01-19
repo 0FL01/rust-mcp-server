@@ -2,39 +2,25 @@ use std::process::Command;
 
 use crate::{
     Tool, execute_command,
-    serde_utils::{
-        PackageWithVersion, deserialize_string, locking_mode_to_cli_flags,
-        output_verbosity_to_cli_flags,
-    },
+    serde_utils::{PackageWithVersion, deserialize_string},
 };
 use rmcp::ErrorData;
 
 /// Display information about a package. Information includes package description, list of available features, etc. Equivalent to 'cargo info <SPEC>'.
 #[derive(Debug, ::serde::Deserialize, schemars::JsonSchema)]
 pub struct CargoInfoRequest {
-    /// Package with optional version (e.g., {"package": "serde", "version": "1.0.0"})
+    #[schemars(description = "")]
     #[serde(flatten)]
     pub package_spec: PackageWithVersion,
-
-    /// Registry index URL to search packages in
+    #[schemars(description = "")]
     #[serde(default, deserialize_with = "deserialize_string")]
     pub index: Option<String>,
-
-    /// Registry to search packages in
+    #[schemars(description = "")]
     #[serde(default, deserialize_with = "deserialize_string")]
     pub registry: Option<String>,
-
-    /// Output verbosity level. Valid options: "quiet" (default), "normal", "verbose".
-    #[serde(default, deserialize_with = "deserialize_string")]
-    pub output_verbosity: Option<String>,
-
-    /// Override a configuration value
+    #[schemars(description = "")]
     #[serde(default, deserialize_with = "deserialize_string")]
     pub config: Option<String>,
-
-    /// Locking mode for dependency resolution. Valid options: "locked" (default), "unlocked", "offline", "frozen".
-    #[serde(default, deserialize_with = "deserialize_string")]
-    pub locking_mode: Option<String>,
 }
 impl CargoInfoRequest {
     pub fn build_cmd(&self) -> Result<Command, ErrorData> {
@@ -54,14 +40,6 @@ impl CargoInfoRequest {
         if let Some(config) = &self.config {
             cmd.arg("--config").arg(config);
         }
-
-        // Manifest options
-        let locking_flags = locking_mode_to_cli_flags(self.locking_mode.as_deref(), "locked")?;
-        cmd.args(locking_flags);
-
-        // Output options
-        let output_flags = output_verbosity_to_cli_flags(self.output_verbosity.as_deref())?;
-        cmd.args(output_flags);
 
         Ok(cmd)
     }

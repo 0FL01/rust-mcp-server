@@ -2,112 +2,77 @@ use std::process::Command;
 
 use crate::{
     Tool, execute_command,
-    serde_utils::{deserialize_string, deserialize_string_vec, locking_mode_to_cli_flags},
+    serde_utils::{deserialize_string, deserialize_string_vec},
 };
 use rmcp::ErrorData;
 
 #[derive(Debug, ::serde::Deserialize, schemars::JsonSchema)]
+#[schemars(description = "")]
 pub struct CargoDenyCheckRequest {
-    /// The check(s) to perform. Options: advisories, ban, bans, license, licenses, sources, all
+    #[schemars(description = "")]
     #[serde(default, deserialize_with = "deserialize_string_vec")]
     which: Option<Vec<String>>,
-
-    /// Path to the config to use. Defaults to <cwd>/deny.toml if not specified
     #[serde(default, deserialize_with = "deserialize_string")]
     config: Option<String>,
-
-    /// Path to graph output root directory for dotviz graph creation
+    #[schemars(description = "")]
     #[serde(default, deserialize_with = "deserialize_string")]
     graph: Option<String>,
-
-    /// Hides the inclusion graph when printing out info for a crate
+    #[schemars(description = "")]
     #[serde(default)]
     hide_inclusion_graph: Option<bool>,
-
-    /// Disable fetching of the advisory database
+    #[schemars(description = "")]
     #[serde(default)]
     disable_fetch: Option<bool>,
-
-    /// If set, excludes all dev-dependencies, not just ones for non-workspace crates
+    #[schemars(description = "")]
     #[serde(default)]
     exclude_dev: Option<bool>,
-
-    /// To ease transition from cargo-audit to cargo-deny, this flag will tell cargo-deny to output the exact same output as cargo-audit would
+    #[schemars(description = "")]
     #[serde(default)]
     audit_compatible_output: Option<bool>,
-
-    /// Show stats for all the checks, regardless of the log-level
+    #[schemars(description = "")]
     #[serde(default)]
     show_stats: Option<bool>,
-
-    /// Set lint warnings
+    #[schemars(description = "")]
     #[serde(default, deserialize_with = "deserialize_string_vec")]
     warn: Option<Vec<String>>,
-
-    /// Set lint allowed
+    #[schemars(description = "")]
     #[serde(default, deserialize_with = "deserialize_string_vec")]
     allow: Option<Vec<String>>,
-
-    /// Set lint denied
+    #[schemars(description = "")]
     #[serde(default, deserialize_with = "deserialize_string_vec")]
     deny: Option<Vec<String>>,
 
-    /// Specifies the depth at which feature edges are added in inclusion graphs
+    #[schemars(description = "")]
     feature_depth: Option<u32>,
-
-    /// The log level for messages (off, error, warn, info, debug, trace)
     #[serde(default, deserialize_with = "deserialize_string")]
     log_level: Option<String>,
-
-    /// Specify the format of cargo-deny's output (human, json)
+    #[schemars(description = "")]
     #[serde(default, deserialize_with = "deserialize_string")]
     format: Option<String>,
-
-    /// The path of a Cargo.toml to use as the context for the operation
-    #[serde(default, deserialize_with = "deserialize_string")]
-    manifest_path: Option<String>,
-
-    /// If passed, all workspace packages are used as roots for the crate graph
+    #[schemars(description = "")]
     #[serde(default)]
     workspace: Option<bool>,
-
-    /// One or more crates to exclude from the crate graph that is used
-    #[serde(default, deserialize_with = "deserialize_string_vec")]
-    exclude: Option<Vec<String>>,
-
-    /// One or more platforms to filter crates by
-    #[serde(default, deserialize_with = "deserialize_string_vec")]
-    target: Option<Vec<String>>,
-
-    /// Activate all available features
-    #[serde(default)]
-    all_features: Option<bool>,
-
-    /// Do not activate the `default` feature
-    #[serde(default)]
-    no_default_features: Option<bool>,
-
-    /// Space or comma separated list of features to activate
-    #[serde(default, deserialize_with = "deserialize_string_vec")]
-    features: Option<Vec<String>>,
-
-    /// Locking mode for dependency resolution.
-    ///
-    /// Valid options:
-    /// - "locked" (default): Assert that `Cargo.lock` will remain unchanged
-    /// - "unlocked": Allow `Cargo.lock` to be updated
-    /// - "offline": Run without accessing the network
-    /// - "frozen": Equivalent to specifying both --locked and --offline
-    #[serde(default, deserialize_with = "deserialize_string")]
-    locking_mode: Option<String>,
-
-    /// If set, the crates.io git index is initialized for use in fetching crate information
+    #[schemars(description = "")]
     #[serde(default)]
     allow_git_index: Option<bool>,
-
-    /// If set, exclude unpublished workspace members from graph roots
+    #[schemars(description = "")]
     #[serde(default)]
     exclude_unpublished: Option<bool>,
+    #[schemars(description = "")]
+    #[serde(default, deserialize_with = "deserialize_string_vec")]
+    exclude: Option<Vec<String>>,
+    #[schemars(description = "")]
+    #[serde(default, deserialize_with = "deserialize_string_vec")]
+    target: Option<Vec<String>>,
+    #[schemars(description = "")]
+    #[serde(default)]
+    all_features: Option<bool>,
+    #[schemars(description = "")]
+    #[serde(default)]
+    no_default_features: Option<bool>,
+    #[schemars(description = "")]
+    #[serde(default, deserialize_with = "deserialize_string_vec")]
+    features: Option<Vec<String>>,
 }
 
 impl CargoDenyCheckRequest {
@@ -122,10 +87,6 @@ impl CargoDenyCheckRequest {
 
         if let Some(format) = &self.format {
             cmd.arg("--format").arg(format);
-        }
-
-        if let Some(manifest_path) = &self.manifest_path {
-            cmd.arg("--manifest-path").arg(manifest_path);
         }
 
         if self.workspace.unwrap_or(false) {
@@ -155,9 +116,6 @@ impl CargoDenyCheckRequest {
         if let Some(features) = &self.features {
             cmd.arg("--features").arg(features.join(","));
         }
-
-        let locking_flags = locking_mode_to_cli_flags(self.locking_mode.as_deref(), "locked")?;
-        cmd.args(locking_flags);
 
         if self.allow_git_index.unwrap_or(false) {
             cmd.arg("--allow-git-index");
@@ -247,7 +205,7 @@ impl Tool for CargoDenyCheckRmcpTool {
 
 #[derive(Debug, ::serde::Deserialize, schemars::JsonSchema)]
 pub struct CargoDenyInitRequest {
-    /// The path to create. Defaults to <cwd>/deny.toml
+    #[schemars(description = "")]
     #[serde(default, deserialize_with = "deserialize_string")]
     config: Option<String>,
 }
@@ -280,18 +238,15 @@ impl Tool for CargoDenyInitRmcpTool {
 
 #[derive(Debug, ::serde::Deserialize, schemars::JsonSchema)]
 pub struct CargoDenyListRequest {
-    /// Path to the config to use. Defaults to a deny.toml in the same folder as the manifest path
+    #[schemars(description = "")]
     #[serde(default, deserialize_with = "deserialize_string")]
     config: Option<String>,
 
-    /// Minimum confidence threshold for license text (0.0 - 1.0, default: 0.8)
+    #[schemars(description = "")]
     threshold: Option<f64>,
-
-    /// The format of the output (human, json, tsv)
     #[serde(default, deserialize_with = "deserialize_string")]
     format: Option<String>,
-
-    /// The layout for the output, does not apply to TSV (crate, license)
+    #[schemars(description = "")]
     #[serde(default, deserialize_with = "deserialize_string")]
     layout: Option<String>,
 }

@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 use std::process::Command;
 
-use crate::{Tool, command::execute_command, serde_utils::deserialize_string};
+use crate::{Tool, command::execute_command};
 use rmcp::{
     ErrorData,
     model::{AnnotateAble, Annotations, RawContent},
@@ -11,15 +11,7 @@ use serde::Deserialize;
 #[derive(Debug, ::serde::Deserialize, ::schemars::JsonSchema)]
 #[schemars(title = "CargoWorkspaceInfoRequest")]
 pub struct CargoWorkspaceInfoRequest {
-    /// The toolchain to use, e.g., "stable" or "nightly".
-    #[serde(default, deserialize_with = "deserialize_string")]
-    toolchain: Option<String>,
-
-    /// Path to Cargo.toml
-    #[serde(default, deserialize_with = "deserialize_string")]
-    manifest_path: Option<String>,
-
-    /// Include direct dependencies (name and version) for each package
+    #[schemars(description = "")]
     #[serde(default)]
     include_dependencies: Option<bool>,
 }
@@ -27,16 +19,9 @@ pub struct CargoWorkspaceInfoRequest {
 impl CargoWorkspaceInfoRequest {
     pub fn build_cmd(&self) -> Result<Command, ErrorData> {
         let mut cmd = Command::new("cargo");
-        if let Some(toolchain) = &self.toolchain {
-            cmd.arg(format!("+{toolchain}"));
-        }
         cmd.arg("metadata");
         cmd.arg("--format-version").arg("1");
         cmd.arg("--no-deps");
-
-        if let Some(manifest_path) = &self.manifest_path {
-            cmd.arg("--manifest-path").arg(manifest_path);
-        }
 
         Ok(cmd)
     }

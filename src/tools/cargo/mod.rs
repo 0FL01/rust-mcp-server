@@ -28,45 +28,15 @@ use std::process::Command;
 
 use crate::{
     Tool, execute_command,
-    serde_utils::{
-        deserialize_string, deserialize_string_vec, locking_mode_to_cli_flags,
-        output_verbosity_to_cli_flags,
-    },
+    serde_utils::{deserialize_string, deserialize_string_vec},
 };
 use rmcp::ErrorData;
 
 #[derive(Debug, ::serde::Deserialize, schemars::JsonSchema)]
 pub struct CargoGenerateLockfileRequest {
-    /// Path to Cargo.toml
-    #[serde(default, deserialize_with = "deserialize_string")]
-    manifest_path: Option<String>,
-
-    /// Path to Cargo.lock (unstable)
-    #[serde(default, deserialize_with = "deserialize_string")]
-    lockfile_path: Option<String>,
-
-    /// Ignore `rust-version` specification in packages
+    #[schemars(description = "")]
     #[serde(default)]
     ignore_rust_version: Option<bool>,
-
-    /// Locking mode for dependency resolution.
-    ///
-    /// Valid options:
-    /// - "locked" (default): Assert that `Cargo.lock` will remain unchanged
-    /// - "unlocked": Allow `Cargo.lock` to be updated
-    /// - "offline": Run without accessing the network
-    /// - "frozen": Equivalent to specifying both --locked and --offline
-    #[serde(default, deserialize_with = "deserialize_string")]
-    locking_mode: Option<String>,
-
-    /// Output verbosity level.
-    ///
-    /// Valid options:
-    /// - "quiet" (default): Show only the essential command output
-    /// - "normal": Show standard output (no additional flags)
-    /// - "verbose": Show detailed output including build information
-    #[serde(default, deserialize_with = "deserialize_string")]
-    output_verbosity: Option<String>,
 }
 
 impl CargoGenerateLockfileRequest {
@@ -74,25 +44,9 @@ impl CargoGenerateLockfileRequest {
         let mut cmd = Command::new("cargo");
         cmd.arg("generate-lockfile");
 
-        // Manifest options
-        if let Some(manifest_path) = &self.manifest_path {
-            cmd.arg("--manifest-path").arg(manifest_path);
-        }
-
-        if let Some(lockfile_path) = &self.lockfile_path {
-            cmd.arg("--lockfile-path").arg(lockfile_path);
-        }
-
         if self.ignore_rust_version.unwrap_or(false) {
             cmd.arg("--ignore-rust-version");
         }
-
-        let locking_flags = locking_mode_to_cli_flags(self.locking_mode.as_deref(), "locked")?;
-        cmd.args(locking_flags);
-
-        // Output options
-        let output_flags = output_verbosity_to_cli_flags(self.output_verbosity.as_deref())?;
-        cmd.args(output_flags);
 
         Ok(cmd)
     }
@@ -113,64 +67,30 @@ impl Tool for CargoGenerateLockfileRmcpTool {
 
 #[derive(Debug, ::serde::Deserialize, schemars::JsonSchema)]
 pub struct CargoCleanRequest {
-    /// The toolchain to use, e.g., "stable" or "nightly".
-    #[serde(default, deserialize_with = "deserialize_string")]
-    toolchain: Option<String>,
-
-    /// Package(s) to clean artifacts for. If not specified, cleans the entire workspace.
+    #[schemars(description = "")]
     #[serde(default, deserialize_with = "deserialize_string_vec")]
     package: Option<Vec<String>>,
 
-    /// Clean artifacts of the specified profile. If not specified, cleans everything.
-    /// Default rust profiles:
-    /// - `dev`: Optimized for development, with debug information.
-    /// - `release`: Optimized for performance, without debug information.
+    #[schemars(description = "")]
     #[serde(default, deserialize_with = "deserialize_string")]
     profile: Option<String>,
-
-    /// Whether or not to clean just the documentation directory
+    #[schemars(description = "")]
     #[serde(default)]
     doc: Option<bool>,
-
-    /// Display what would be deleted without deleting anything
+    #[schemars(description = "")]
     #[serde(default)]
     dry_run: Option<bool>,
-
-    /// Whether or not to clean release artifacts
+    #[schemars(description = "")]
     #[serde(default)]
     release: Option<bool>,
-
-    /// Target triple to clean output for
+    #[schemars(description = "")]
     #[serde(default, deserialize_with = "deserialize_string")]
     target: Option<String>,
-
-    /// Directory for all generated artifacts
-    #[serde(default, deserialize_with = "deserialize_string")]
-    target_dir: Option<String>,
-
-    /// Path to Cargo.toml
-    #[serde(default, deserialize_with = "deserialize_string")]
-    manifest_path: Option<String>,
-
-    /// Path to Cargo.lock (unstable)
-    #[serde(default, deserialize_with = "deserialize_string")]
-    lockfile_path: Option<String>,
-
-    /// Locking mode for dependency resolution. Valid options: "locked" (default), "unlocked", "offline", "frozen".
-    #[serde(default, deserialize_with = "deserialize_string")]
-    locking_mode: Option<String>,
-
-    /// Output verbosity level. Valid options: "quiet" (default), "normal", "verbose".
-    #[serde(default, deserialize_with = "deserialize_string")]
-    output_verbosity: Option<String>,
 }
 
 impl CargoCleanRequest {
     pub fn build_cmd(&self) -> Result<Command, ErrorData> {
         let mut cmd = Command::new("cargo");
-        if let Some(toolchain) = &self.toolchain {
-            cmd.arg(format!("+{toolchain}"));
-        }
         cmd.arg("clean");
 
         // Package selection
@@ -201,26 +121,6 @@ impl CargoCleanRequest {
             cmd.arg("--target").arg(target);
         }
 
-        if let Some(target_dir) = &self.target_dir {
-            cmd.arg("--target-dir").arg(target_dir);
-        }
-
-        // Manifest options
-        if let Some(manifest_path) = &self.manifest_path {
-            cmd.arg("--manifest-path").arg(manifest_path);
-        }
-
-        if let Some(lockfile_path) = &self.lockfile_path {
-            cmd.arg("--lockfile-path").arg(lockfile_path);
-        }
-
-        let locking_flags = locking_mode_to_cli_flags(self.locking_mode.as_deref(), "locked")?;
-        cmd.args(locking_flags);
-
-        // Output options
-        let output_flags = output_verbosity_to_cli_flags(self.output_verbosity.as_deref())?;
-        cmd.args(output_flags);
-
         Ok(cmd)
     }
 }
@@ -240,41 +140,23 @@ impl Tool for CargoCleanRmcpTool {
 
 #[derive(Debug, ::serde::Deserialize, schemars::JsonSchema)]
 pub struct CargoFmtRequest {
-    /// The toolchain to use, e.g., "stable" or "nightly".
-    #[serde(default, deserialize_with = "deserialize_string")]
-    toolchain: Option<String>,
-
-    /// The name of the package(s) to format. If not specified, formats the current package.
+    #[schemars(description = "")]
     #[serde(default, deserialize_with = "deserialize_string_vec")]
     package: Option<Vec<String>>,
-
-    /// Format all packages, and also their local path-based dependencies
+    #[schemars(description = "")]
     #[serde(default)]
     all: bool,
-
-    /// Run rustfmt in check mode (don't write changes, just check if formatting is needed)
+    #[schemars(description = "")]
     #[serde(default)]
     check: bool,
-
-    /// Specify path to Cargo.toml
-    #[serde(default, deserialize_with = "deserialize_string")]
-    manifest_path: Option<String>,
-
-    /// Specify message-format: short|json|human
+    #[schemars(description = "")]
     #[serde(default, deserialize_with = "deserialize_string")]
     message_format: Option<String>,
-
-    /// Output verbosity level. Valid options: "quiet" (default), "normal", "verbose".
-    #[serde(default, deserialize_with = "deserialize_string")]
-    output_verbosity: Option<String>,
 }
 
 impl CargoFmtRequest {
     pub fn build_cmd(&self) -> Result<Command, ErrorData> {
         let mut cmd = Command::new("cargo");
-        if let Some(toolchain) = &self.toolchain {
-            cmd.arg(format!("+{toolchain}"));
-        }
         cmd.arg("fmt");
 
         // Package selection
@@ -293,18 +175,9 @@ impl CargoFmtRequest {
             cmd.arg("--check");
         }
 
-        // Manifest options
-        if let Some(manifest_path) = &self.manifest_path {
-            cmd.arg("--manifest-path").arg(manifest_path);
-        }
-
         if let Some(message_format) = &self.message_format {
             cmd.arg("--message-format").arg(message_format);
         }
-
-        // Output options
-        let output_flags = output_verbosity_to_cli_flags(self.output_verbosity.as_deref())?;
-        cmd.args(output_flags);
 
         Ok(cmd)
     }
@@ -337,54 +210,31 @@ impl Tool for CargoFmtRmcpTool {
 
 #[derive(Debug, ::serde::Deserialize, schemars::JsonSchema)]
 pub struct CargoNewRequest {
-    /// The toolchain to use, e.g., "stable" or "nightly".
-    #[serde(default, deserialize_with = "deserialize_string")]
-    toolchain: Option<String>,
-
-    /// Path where the new cargo package will be created.
-    /// Examples: "my-project", "path/to/my-lib", "../new-crate"
     pub path: String,
-
-    /// Set the resulting package name, defaults to the directory name
+    #[schemars(description = "")]
     #[serde(default, deserialize_with = "deserialize_string")]
     pub name: Option<String>,
-
-    /// Use a binary (application) template [default]
+    #[schemars(description = "")]
     #[serde(default)]
     pub bin: bool,
-
-    /// Use a library template
+    #[schemars(description = "")]
     #[serde(default)]
     pub lib: Option<bool>,
-
-    /// Edition to set for the crate generated. Possible values: 2015, 2018, 2021, 2024
+    #[schemars(description = "")]
     #[serde(default, deserialize_with = "deserialize_string")]
     pub edition: Option<String>,
 
-    /// Initialize a new repository for the given version control system, overriding a global configuration.
-    /// Possible values: git, hg, pijul, fossil, none
+    #[schemars(description = "")]
     #[serde(default, deserialize_with = "deserialize_string")]
     pub vcs: Option<String>,
-
-    /// Registry to use
+    #[schemars(description = "")]
     #[serde(default, deserialize_with = "deserialize_string")]
     pub registry: Option<String>,
-
-    /// Locking mode for dependency resolution. Valid options: "locked" (default), "unlocked", "offline", "frozen".
-    #[serde(default, deserialize_with = "deserialize_string")]
-    pub locking_mode: Option<String>,
-
-    /// Output verbosity level. Valid options: "quiet" (default), "normal", "verbose".
-    #[serde(default, deserialize_with = "deserialize_string")]
-    pub output_verbosity: Option<String>,
 }
 
 impl CargoNewRequest {
     pub fn build_cmd(&self) -> Result<Command, ErrorData> {
         let mut cmd = Command::new("cargo");
-        if let Some(toolchain) = &self.toolchain {
-            cmd.arg(format!("+{toolchain}"));
-        }
         cmd.arg("new");
 
         // Add the path argument (required)
@@ -413,14 +263,6 @@ impl CargoNewRequest {
         if let Some(vcs) = &self.vcs {
             cmd.arg("--vcs").arg(vcs);
         }
-
-        // Manifest options
-        let locking_flags = locking_mode_to_cli_flags(self.locking_mode.as_deref(), "unlocked")?;
-        cmd.args(locking_flags);
-
-        // Output options
-        let output_flags = output_verbosity_to_cli_flags(self.output_verbosity.as_deref())?;
-        cmd.args(output_flags);
 
         Ok(cmd)
     }

@@ -2,71 +2,35 @@ use std::process::Command;
 
 use crate::{
     Tool, execute_command,
-    serde_utils::{
-        deserialize_string, deserialize_string_vec, locking_mode_to_cli_flags,
-        output_verbosity_to_cli_flags,
-    },
+    serde_utils::{deserialize_string, deserialize_string_vec},
     tools::cargo::CargoWorkspaceInfoRmcpTool,
 };
 use rmcp::ErrorData;
 #[derive(Debug, ::serde::Deserialize, ::schemars::JsonSchema)]
 pub struct CargoMetadataRequest {
-    /// The toolchain to use, e.g., "stable" or "nightly".
-    #[serde(default, deserialize_with = "deserialize_string")]
-    toolchain: Option<String>,
-
-    /// Only include resolve dependencies matching the given target-triple
+    #[schemars(description = "")]
     #[serde(default, deserialize_with = "deserialize_string")]
     filter_platform: Option<String>,
-
-    /// Output information only about the workspace members and don't fetch dependencies
+    #[schemars(description = "")]
     #[serde(default)]
     no_deps: Option<bool>,
 
-    /// Use verbose output (-vv very verbose/build.rs output)
-    /// Output verbosity level.
-    ///
-    /// Valid options:
-    /// - "quiet" (default): Show only the essential command output
-    /// - "normal": Show standard output (no additional flags)
-    /// - "verbose": Show detailed output including build information
-    #[serde(default, deserialize_with = "deserialize_string")]
-    output_verbosity: Option<String>,
-
-    /// Override a configuration value
+    #[schemars(description = "")]
     #[serde(default, deserialize_with = "deserialize_string")]
     config: Option<String>,
-
-    /// Space or comma separated list of features to activate
+    #[schemars(description = "")]
     #[serde(default, deserialize_with = "deserialize_string_vec")]
     features: Option<Vec<String>>,
-
-    /// Activate all available features
+    #[schemars(description = "")]
     #[serde(default)]
     all_features: Option<bool>,
-
-    /// Do not activate the `default` feature
+    #[schemars(description = "")]
     #[serde(default)]
     no_default_features: Option<bool>,
-
-    /// Path to Cargo.toml
-    #[serde(default, deserialize_with = "deserialize_string")]
-    manifest_path: Option<String>,
-
-    /// Path to Cargo.lock (unstable)
-    #[serde(default, deserialize_with = "deserialize_string")]
-    lockfile_path: Option<String>,
-
-    /// Locking mode for dependency resolution. Valid options: "locked" (default), "unlocked", "offline", "frozen".
-    #[serde(default, deserialize_with = "deserialize_string")]
-    locking_mode: Option<String>,
 }
 impl CargoMetadataRequest {
     pub fn build_cmd(&self) -> Result<Command, ErrorData> {
         let mut cmd = Command::new("cargo");
-        if let Some(toolchain) = &self.toolchain {
-            cmd.arg(format!("+{toolchain}"));
-        }
         cmd.arg("metadata");
         cmd.arg("--format-version").arg("1");
 
@@ -78,10 +42,6 @@ impl CargoMetadataRequest {
         if self.no_deps.unwrap_or(false) {
             cmd.arg("--no-deps");
         }
-
-        // Output options
-        let output_flags = output_verbosity_to_cli_flags(self.output_verbosity.as_deref())?;
-        cmd.args(output_flags);
 
         if let Some(config) = &self.config {
             cmd.arg("--config").arg(config);
@@ -101,18 +61,6 @@ impl CargoMetadataRequest {
         if self.no_default_features.unwrap_or(false) {
             cmd.arg("--no-default-features");
         }
-
-        // Manifest options
-        if let Some(manifest_path) = &self.manifest_path {
-            cmd.arg("--manifest-path").arg(manifest_path);
-        }
-
-        if let Some(lockfile_path) = &self.lockfile_path {
-            cmd.arg("--lockfile-path").arg(lockfile_path);
-        }
-
-        let locking_flags = locking_mode_to_cli_flags(self.locking_mode.as_deref(), "locked")?;
-        cmd.args(locking_flags);
 
         Ok(cmd)
     }
