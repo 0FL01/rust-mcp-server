@@ -5,7 +5,7 @@ All notable changes to this project will be documented in this file.
 ## [0.4.0] - 2026-01-19
 
 ### Optimization (Token Usage Reduction)
-Drastically reduced MCP server token consumption from ~14,000 to ~2,000 tokens per session (-85%).
+Drastically reduced MCP server token consumption from ~15,000 to ~4,100 tokens per session (saving ~11,000 tokens).
 
 #### Features & Configuration
 - **Modularized Tools**: Added feature flags for optional tool categories. The following are now disabled by default:

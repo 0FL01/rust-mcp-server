@@ -31,6 +31,8 @@ Essentially, it turns your AI assistant into an active participant in your devel
 
 rust-mcp-server exposes a comprehensive set of Rust development tools to the LLM:
 
+*   **Optimized for LLM Context**: Highly efficient schema design consumes only ~4.1k tokens, maximizing available attention for reasoning tasks.
+
 ### Core Cargo Commands
 *   **`cargo-build`**: Compile your package
 *   **`cargo-check`**: Analyze the current package and report errors, but don't build it
