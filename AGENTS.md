@@ -160,10 +160,3 @@ Tool responses include:
 4. Exit status with emoji (✅ for success, ❌ for failure)
 5. Agent recommendations (optional, can be disabled)
 6. Additional custom content (optional)
-
-### 10. Versioning
-
-- Current version: 0.3.1
-- Follows semantic versioning
-- Changelog maintained in CHANGELOG.md
-- Version displayed via `-V` or `--version` flag
